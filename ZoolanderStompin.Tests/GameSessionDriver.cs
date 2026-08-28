@@ -115,6 +115,52 @@ public sealed class GameSessionDriver
         AdvanceAndTick(Gap);
     }
 
+    public void HitCurrent()
+    {
+        if (Session.LitPad is not { } pad)
+        {
+            throw new InvalidOperationException("No lit pad to stomp.");
+        }
+
+        Stomp(pad.Number);
+    }
+
+    public void PlayUntilResults(bool hitEveryPresentation)
+    {
+        while (Session.Phase is not SessionPhase.Results)
+        {
+            switch (Session.Phase)
+            {
+                case SessionPhase.Countdown:
+                    SkipCountdown();
+                    break;
+                case SessionPhase.Intermission:
+                    AdvanceAndTick(Intermission);
+                    Tick();
+                    break;
+                case SessionPhase.Playing:
+                    if (hitEveryPresentation)
+                    {
+                        HitCurrent();
+                    }
+                    else
+                    {
+                        MissCurrent();
+                    }
+
+                    if (Session.Phase == SessionPhase.Playing)
+                    {
+                        FinishGap();
+                    }
+
+                    break;
+                default:
+                    Tick();
+                    break;
+            }
+        }
+    }
+
     public static GameOptions CreateShortSession()
     {
         var options = GameOptions.CreateDefault();

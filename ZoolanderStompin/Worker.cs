@@ -45,6 +45,16 @@ public class Worker : BackgroundService
                         _session.Phase,
                         _session.CurrentRound,
                         _session.Credits);
+
+                    if (_session.Phase == SessionPhase.Results && _session.Result is { } result)
+                    {
+                        _logger.LogInformation(
+                            "{Outcome}. {Percent:0}% hits. Stub payout {Tickets} tickets.",
+                            result.Won ? "Win" : "Lose",
+                            result.HitPercent,
+                            result.Tickets);
+                    }
+
                     lastPhase = _session.Phase;
                 }
 

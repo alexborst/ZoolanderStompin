@@ -37,6 +37,6 @@ public class GameSessionRoundTests
         Assert.AreEqual(SessionPhase.Results, driver.Session.Phase);
         Assert.AreEqual(3, driver.Session.Score.Hits);
         Assert.AreEqual(1, driver.Session.Score.Misses);
-        Assert.AreEqual(GameSound.GameEnd, driver.Output.Sound);
+        Assert.AreEqual(GameSound.Ticket, driver.Output.Sound);
     }
 }

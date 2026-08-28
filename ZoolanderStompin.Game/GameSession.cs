@@ -45,6 +45,8 @@ public sealed class GameSession
 
     public FloorPad? LastPresentedPad => _loop?.LastPresentedPad ?? _previousPad;
 
+    public GameResult? Result { get; private set; }
+
     public void Tick(GameIoInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -83,32 +85,38 @@ public sealed class GameSession
                 easyLampOn: _options.FreePlay,
                 mediumLampOn: _options.FreePlay,
                 hardLampOn: _options.FreePlay,
-                scoreDigits: null),
+                scoreDigits: null,
+                ticketDigits: null),
             SessionPhase.Select => BuildOutput(
                 padLampsOn: [],
                 easyLampOn: true,
                 mediumLampOn: true,
                 hardLampOn: true,
-                scoreDigits: null),
+                scoreDigits: null,
+                ticketDigits: null),
             SessionPhase.Countdown => BuildOutput(
                 padLampsOn: [],
                 easyLampOn: SelectedDifficulty is Difficulty.Easy,
                 mediumLampOn: SelectedDifficulty is Difficulty.Medium,
                 hardLampOn: SelectedDifficulty is Difficulty.Hard,
-                scoreDigits: 0),
+                scoreDigits: 0,
+                ticketDigits: null),
             SessionPhase.Playing => _loop?.ToOutput() ?? GameIoOutput.Off,
             SessionPhase.Intermission => BuildOutput(
                 padLampsOn: [],
                 easyLampOn: SelectedDifficulty is Difficulty.Easy,
                 mediumLampOn: SelectedDifficulty is Difficulty.Medium,
                 hardLampOn: SelectedDifficulty is Difficulty.Hard,
-                scoreDigits: Math.Min(99, Score.Hits)),
+                scoreDigits: Math.Min(99, Score.Hits),
+                ticketDigits: null),
             SessionPhase.Results => BuildOutput(
                 padLampsOn: [],
                 easyLampOn: SelectedDifficulty is Difficulty.Easy,
                 mediumLampOn: SelectedDifficulty is Difficulty.Medium,
                 hardLampOn: SelectedDifficulty is Difficulty.Hard,
-                scoreDigits: Math.Min(99, Score.Hits)),
+                scoreDigits: Math.Min(99, Score.Hits),
+                ticketDigits: Math.Min(99, Result?.Tickets ?? 0),
+                ticketEnable: (Result?.Tickets ?? 0) > 0),
             _ => GameIoOutput.Off,
         };
     }
@@ -292,6 +300,7 @@ public sealed class GameSession
     {
         Phase = SessionPhase.Select;
         SelectedDifficulty = null;
+        Result = null;
         _loop = null;
         ResetSelectTimeout();
         if (Sound is not GameSound.Coin)
@@ -320,6 +329,7 @@ public sealed class GameSession
         CurrentRound = 1;
         _score = new Score(0, 0);
         _previousPad = null;
+        Result = null;
         _loop = null;
         _countdownIsGetReady = true;
         _phaseDeadline = new TimedDeadline(_clock, GetReady);
@@ -350,9 +360,11 @@ public sealed class GameSession
     private void EnterResults()
     {
         Phase = SessionPhase.Results;
+        var result = GameResult.Evaluate(_score, _options);
+        Result = result;
         _loop = null;
         _phaseDeadline = new TimedDeadline(_clock, ResultsHold);
-        Sound = GameSound.GameEnd;
+        Sound = result.Tickets > 0 ? GameSound.Ticket : GameSound.GameEnd;
     }
 
     private void EnterAttract()
@@ -360,6 +372,7 @@ public sealed class GameSession
         Phase = SessionPhase.Attract;
         SelectedDifficulty = null;
         CurrentRound = 0;
+        Result = null;
         _loop = null;
         _attractPad = new FloorPad(1);
         _phaseDeadline = new TimedDeadline(_clock, AttractCycle);
@@ -371,7 +384,9 @@ public sealed class GameSession
         bool easyLampOn,
         bool mediumLampOn,
         bool hardLampOn,
-        int? scoreDigits) =>
+        int? scoreDigits,
+        int? ticketDigits,
+        bool ticketEnable = false) =>
         new(
             padLampsOn: padLampsOn,
             easyLampOn: easyLampOn,
@@ -381,7 +396,7 @@ public sealed class GameSession
                 ? GameIoOutput.Off.PictorialLampsOn
                 : PictorialMeter.Lamps(Score.Hits, _options.SessionPresentations),
             scoreDigits: scoreDigits,
-            ticketDigits: null,
+            ticketDigits: ticketDigits,
             sound: Sound,
-            ticketEnable: false);
+            ticketEnable: ticketEnable);
 }
