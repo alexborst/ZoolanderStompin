@@ -72,6 +72,11 @@ public sealed class GameSessionDriver
     public void Stomp(params int[] pads)
     {
         SetPads(pads);
+        StabilizeHeldPads();
+    }
+
+    public void StabilizeHeldPads()
+    {
         Tick();
         AdvanceAndTick(Debounce);
     }
@@ -85,6 +90,12 @@ public sealed class GameSessionDriver
 
     public void SkipCountdown()
     {
+        SkipToPlayingUnlit();
+        Tick();
+    }
+
+    public void SkipToPlayingUnlit()
+    {
         if (Session.Phase != SessionPhase.Countdown)
         {
             throw new InvalidOperationException($"Expected Countdown, was {Session.Phase}.");
@@ -92,7 +103,6 @@ public sealed class GameSessionDriver
 
         AdvanceAndTick(GetReady);
         AdvanceAndTick(Go);
-        Tick();
     }
 
     public void MissCurrent()
@@ -185,6 +195,7 @@ public sealed class GameSessionDriver
         Input = BuildInput(easy: easy, medium: medium, hard: hard, credit: credit, serviceCredit: serviceCredit);
         Tick();
         Input = BuildInput();
+        Tick();
     }
 
     private GameIoInput BuildInput(
