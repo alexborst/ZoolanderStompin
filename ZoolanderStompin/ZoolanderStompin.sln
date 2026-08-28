@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36623.8 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoolanderStompin", "ZoolanderStompin.csproj", "{15613E0F-779C-4F2D-BE4E-04C10F707119}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoolanderStompin.Host", "ZoolanderStompin.Host.csproj", "{15613E0F-779C-4F2D-BE4E-04C10F707119}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoolanderStompin.Game", "..\ZoolanderStompin.Game\ZoolanderStompin.Game.csproj", "{65E4861C-4601-470F-B8E8-49F8F91A095F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoolanderStompin.Tests", "..\ZoolanderStompin.Tests\ZoolanderStompin.Tests.csproj", "{B2173489-67C5-4642-AF6F-630976B3DCDB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{15613E0F-779C-4F2D-BE4E-04C10F707119}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15613E0F-779C-4F2D-BE4E-04C10F707119}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15613E0F-779C-4F2D-BE4E-04C10F707119}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65E4861C-4601-470F-B8E8-49F8F91A095F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65E4861C-4601-470F-B8E8-49F8F91A095F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65E4861C-4601-470F-B8E8-49F8F91A095F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65E4861C-4601-470F-B8E8-49F8F91A095F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2173489-67C5-4642-AF6F-630976B3DCDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2173489-67C5-4642-AF6F-630976B3DCDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2173489-67C5-4642-AF6F-630976B3DCDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2173489-67C5-4642-AF6F-630976B3DCDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
