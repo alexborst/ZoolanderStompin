@@ -5,7 +5,7 @@ namespace ZoolanderStompin;
 public sealed class KeyboardGameIo : IGameIo
 {
     private readonly ILogger<KeyboardGameIo> _logger;
-    private readonly HashSet<FloorPad> _padsHeld = [];
+    private readonly KeyboardPadLatch _pads;
     private bool _easyHeld;
     private bool _mediumHeld;
     private bool _hardHeld;
@@ -14,9 +14,11 @@ public sealed class KeyboardGameIo : IGameIo
     private bool _ticketNotchPulse;
     private string _lastRendered = "";
 
-    public KeyboardGameIo(ILogger<KeyboardGameIo> logger)
+    public KeyboardGameIo(ILogger<KeyboardGameIo> logger, IGameClock clock, GameOptions gameOptions)
     {
         _logger = logger;
+        var holdMs = Math.Max(gameOptions.DebounceMilliseconds + 50, 80);
+        _pads = new KeyboardPadLatch(clock, TimeSpan.FromMilliseconds(holdMs));
     }
 
     public GameIoInput Read()
@@ -35,7 +37,7 @@ public sealed class KeyboardGameIo : IGameIo
         }
 
         return new GameIoInput(
-            padsHeld: _padsHeld,
+            padsHeld: _pads.Held,
             easyHeld: _easyHeld,
             mediumHeld: _mediumHeld,
             hardHeld: _hardHeld,
@@ -61,12 +63,13 @@ public sealed class KeyboardGameIo : IGameIo
         var pad = KeyboardBindings.TryGetFloorPad(key);
         if (pad is { } floorPad)
         {
-            if (!_padsHeld.Add(floorPad))
+            var alreadyHeld = _pads.IsHeld(floorPad);
+            _pads.Press(floorPad);
+            if (!alreadyHeld)
             {
-                _padsHeld.Remove(floorPad);
+                _logger.LogInformation("Pad {Pad} stomp.", floorPad.Number);
             }
 
-            _logger.LogInformation("Pad {Pad} {State}.", floorPad.Number, _padsHeld.Contains(floorPad) ? "held" : "released");
             return;
         }
 

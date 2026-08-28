@@ -22,7 +22,7 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
-            "{Product} session ready. Keys: C credit, F service credit, E/M/H difficulty, 1-7 toggle pads (press once to stomp, again to lift).",
+            "{Product} session ready. Keys: C credit, F service credit, E/M/H difficulty, 1-7 stomp (tap the lit number; hold a key to stand on that pad).",
             GameInfo.Name);
 
         _gameIo.Apply(_session.ToOutput());
@@ -78,11 +78,19 @@ public class Worker : BackgroundService
 
         if (_session.Score.Hits > scoreBefore.Hits)
         {
-            _logger.LogInformation("Hit. {Hits} hits, {Misses} misses.", _session.Score.Hits, _session.Score.Misses);
+            _logger.LogInformation(
+                "Hit pad {Pad}. {Hits} hits, {Misses} misses.",
+                _session.LastPresentedPad?.Number,
+                _session.Score.Hits,
+                _session.Score.Misses);
         }
         else
         {
-            _logger.LogInformation("Miss. {Hits} hits, {Misses} misses.", _session.Score.Hits, _session.Score.Misses);
+            _logger.LogInformation(
+                "Miss pad {Pad}. {Hits} hits, {Misses} misses.",
+                _session.LastPresentedPad?.Number,
+                _session.Score.Hits,
+                _session.Score.Misses);
         }
     }
 }

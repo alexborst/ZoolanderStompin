@@ -43,6 +43,8 @@ public sealed class GameSession
 
     public FloorPad? LitPad => Phase is SessionPhase.Playing ? _loop?.LitPad : Phase is SessionPhase.Attract ? _attractPad : null;
 
+    public FloorPad? LastPresentedPad => _loop?.LastPresentedPad ?? _previousPad;
+
     public void Tick(GameIoInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
