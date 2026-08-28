@@ -377,7 +377,9 @@ public sealed class GameSession
             easyLampOn: easyLampOn,
             mediumLampOn: mediumLampOn,
             hardLampOn: hardLampOn,
-            pictorialLampsOn: GameIoOutput.Off.PictorialLampsOn,
+            pictorialLampsOn: scoreDigits is null
+                ? GameIoOutput.Off.PictorialLampsOn
+                : PictorialMeter.Lamps(Score.Hits, _options.SessionPresentations),
             scoreDigits: scoreDigits,
             ticketDigits: null,
             sound: Sound,

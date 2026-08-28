@@ -21,6 +21,10 @@ public class TargetLoopHitTests
         Assert.AreEqual(0, driver.Output.PadLampsOn.Count);
         Assert.AreEqual(1, driver.Output.ScoreDigits);
         Assert.AreEqual(GameSound.Hit, driver.Output.Sound);
+        Assert.IsNull(driver.Output.TicketDigits);
+        CollectionAssert.AreEqual(
+            new[] { true, false, false, false },
+            driver.Output.PictorialLampsOn.ToArray());
     }
 
     [TestMethod]

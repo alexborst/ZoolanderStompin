@@ -20,6 +20,10 @@ public class TargetLoopMissTests
         Assert.IsNull(driver.Loop.LitPad);
         Assert.AreEqual(GameSound.Miss, driver.Output.Sound);
         Assert.AreEqual(0, driver.Output.ScoreDigits);
+        Assert.IsNull(driver.Output.TicketDigits);
+        CollectionAssert.AreEqual(
+            new[] { false, false, false, false },
+            driver.Output.PictorialLampsOn.ToArray());
     }
 
     [TestMethod]

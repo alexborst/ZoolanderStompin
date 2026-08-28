@@ -19,6 +19,7 @@ public class GameOptionsTests
         CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5, 6, 7 }, options.Hard.PadsInPlay);
         Assert.AreEqual(20, options.PresentationsPerRound);
         Assert.AreEqual(2, options.RoundCount);
+        Assert.AreEqual(40, options.SessionPresentations);
         Assert.IsTrue(options.PreventConsecutiveRepeat);
         Assert.AreEqual(250, options.InterTargetGapMilliseconds);
         Assert.AreEqual(60, options.WinPercentThreshold);

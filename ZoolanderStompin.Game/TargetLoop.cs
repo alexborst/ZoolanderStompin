@@ -92,7 +92,7 @@ public sealed class TargetLoop
             easyLampOn: Difficulty is Difficulty.Easy,
             mediumLampOn: Difficulty is Difficulty.Medium,
             hardLampOn: Difficulty is Difficulty.Hard,
-            pictorialLampsOn: GameIoOutput.Off.PictorialLampsOn,
+            pictorialLampsOn: PictorialMeter.Lamps(Score.Hits, _options.SessionPresentations),
             scoreDigits: hits,
             ticketDigits: null,
             sound: Sound,

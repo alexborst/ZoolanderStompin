@@ -23,6 +23,8 @@ public sealed class GameOptions
 
     public int RoundCount { get; set; }
 
+    public int SessionPresentations => PresentationsPerRound * RoundCount;
+
     public bool PreventConsecutiveRepeat { get; set; }
 
     public int InterTargetGapMilliseconds { get; set; }
