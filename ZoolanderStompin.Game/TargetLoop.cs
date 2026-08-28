@@ -12,8 +12,15 @@ public sealed class TargetLoop
     private TimedDeadline? _gap;
     private FloorPad? _previousPad;
     private bool _started;
+    private int _resolvedThisRound;
 
-    public TargetLoop(GameOptions options, Difficulty difficulty, IGameClock clock, IPadPicker picker)
+    public TargetLoop(
+        GameOptions options,
+        Difficulty difficulty,
+        IGameClock clock,
+        IPadPicker picker,
+        Score startingScore = default,
+        FloorPad? previousPad = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(clock);
@@ -29,6 +36,9 @@ public sealed class TargetLoop
         _clock = clock;
         _picker = picker;
         _debouncer = new PadDebouncer(clock, TimeSpan.FromMilliseconds(options.DebounceMilliseconds));
+        Score = startingScore;
+        _previousPad = previousPad;
+        LastPresentedPad = previousPad;
         Phase = TargetLoopPhase.Gap;
     }
 
@@ -36,9 +46,11 @@ public sealed class TargetLoop
 
     public TargetLoopPhase Phase { get; private set; }
 
-    public Score Score { get; private set; } = new(0, 0);
+    public Score Score { get; private set; }
 
     public FloorPad? LitPad { get; private set; }
+
+    public FloorPad? LastPresentedPad { get; private set; }
 
     public GameSound? Sound { get; private set; }
 
@@ -108,7 +120,7 @@ public sealed class TargetLoop
 
     private void StartPresentation()
     {
-        if (Score.ResolvedPresentations >= _options.PresentationsPerRound)
+        if (_resolvedThisRound >= _options.PresentationsPerRound)
         {
             CompleteRound();
             return;
@@ -122,6 +134,7 @@ public sealed class TargetLoop
         }
 
         LitPad = pick;
+        LastPresentedPad = pick;
         _previousPad = pick;
         _window = new TimedDeadline(_clock, TimeSpan.FromMilliseconds(_difficultyOptions.HitWindowMilliseconds));
         _gap = null;
@@ -164,6 +177,7 @@ public sealed class TargetLoop
     private void ResolveHit()
     {
         Score = Score.WithHit();
+        _resolvedThisRound++;
         Sound = GameSound.Hit;
         EndPresentation();
     }
@@ -171,6 +185,7 @@ public sealed class TargetLoop
     private void ResolveMiss()
     {
         Score = Score.WithMiss();
+        _resolvedThisRound++;
         Sound = GameSound.Miss;
         EndPresentation();
     }
@@ -179,7 +194,7 @@ public sealed class TargetLoop
     {
         LitPad = null;
         _window = null;
-        if (Score.ResolvedPresentations >= _options.PresentationsPerRound)
+        if (_resolvedThisRound >= _options.PresentationsPerRound)
         {
             CompleteRound();
             return;

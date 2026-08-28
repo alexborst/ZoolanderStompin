@@ -33,6 +33,20 @@ public sealed class GameOptions
 
     public SelectTimeoutAction SelectTimeoutAction { get; set; }
 
+    public int CountdownGetReadyMilliseconds { get; set; }
+
+    public int CountdownGoMilliseconds { get; set; }
+
+    public int IntermissionMilliseconds { get; set; }
+
+    public int ResultsMilliseconds { get; set; }
+
+    public int AttractLampCycleMilliseconds { get; set; }
+
+    public bool FreePlay { get; set; }
+
+    public int CoinsPerCredit { get; set; }
+
     public DifficultyOptions Easy { get; set; } = new();
 
     public DifficultyOptions Medium { get; set; } = new();
@@ -61,6 +75,13 @@ public sealed class GameOptions
             WinPercentThreshold = 60,
             SelectTimeoutSeconds = 30,
             SelectTimeoutAction = SelectTimeoutAction.AutoStartEasy,
+            CountdownGetReadyMilliseconds = 1500,
+            CountdownGoMilliseconds = 700,
+            IntermissionMilliseconds = 2000,
+            ResultsMilliseconds = 3000,
+            AttractLampCycleMilliseconds = 400,
+            FreePlay = false,
+            CoinsPerCredit = 1,
             Easy = new DifficultyOptions
             {
                 PadsInPlay = [1, 2, 3, 4],
@@ -163,6 +184,36 @@ public sealed class GameOptions
         if (!Enum.IsDefined(SelectTimeoutAction))
         {
             errors.Add("SelectTimeoutAction is not a recognized value.");
+        }
+
+        if (CountdownGetReadyMilliseconds <= 0)
+        {
+            errors.Add("CountdownGetReadyMilliseconds must be greater than 0.");
+        }
+
+        if (CountdownGoMilliseconds <= 0)
+        {
+            errors.Add("CountdownGoMilliseconds must be greater than 0.");
+        }
+
+        if (IntermissionMilliseconds <= 0)
+        {
+            errors.Add("IntermissionMilliseconds must be greater than 0.");
+        }
+
+        if (ResultsMilliseconds <= 0)
+        {
+            errors.Add("ResultsMilliseconds must be greater than 0.");
+        }
+
+        if (AttractLampCycleMilliseconds <= 0)
+        {
+            errors.Add("AttractLampCycleMilliseconds must be greater than 0.");
+        }
+
+        if (CoinsPerCredit < 1)
+        {
+            errors.Add("CoinsPerCredit must be at least 1.");
         }
     }
 

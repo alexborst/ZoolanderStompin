@@ -10,6 +10,7 @@ builder.Services.AddSingleton(gameOptions);
 builder.Services.AddSingleton<IGameIo, KeyboardGameIo>();
 builder.Services.AddSingleton<IGameClock, SystemGameClock>();
 builder.Services.AddSingleton<IPadPicker, RandomPadPicker>();
+builder.Services.AddSingleton<GameSession>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

@@ -24,6 +24,13 @@ public class GameOptionsTests
         Assert.AreEqual(60, options.WinPercentThreshold);
         Assert.AreEqual(30, options.SelectTimeoutSeconds);
         Assert.AreEqual(SelectTimeoutAction.AutoStartEasy, options.SelectTimeoutAction);
+        Assert.AreEqual(1500, options.CountdownGetReadyMilliseconds);
+        Assert.AreEqual(700, options.CountdownGoMilliseconds);
+        Assert.AreEqual(2000, options.IntermissionMilliseconds);
+        Assert.AreEqual(3000, options.ResultsMilliseconds);
+        Assert.AreEqual(400, options.AttractLampCycleMilliseconds);
+        Assert.IsFalse(options.FreePlay);
+        Assert.AreEqual(1, options.CoinsPerCredit);
         Assert.AreEqual(30, options.DebounceMilliseconds);
         Assert.AreEqual(PayoutMode.PercentageTable, options.Payout.Mode);
         Assert.AreEqual(0, options.Payout.TicketsForHitPercent(0));
@@ -58,6 +65,13 @@ public class GameOptionsTests
               "winPercentThreshold": 60,
               "selectTimeoutSeconds": 30,
               "selectTimeoutAction": "AutoStartEasy",
+              "countdownGetReadyMilliseconds": 1500,
+              "countdownGoMilliseconds": 700,
+              "intermissionMilliseconds": 2000,
+              "resultsMilliseconds": 3000,
+              "attractLampCycleMilliseconds": 400,
+              "freePlay": false,
+              "coinsPerCredit": 1,
               "easy": { "padsInPlay": [1, 2, 3, 4], "hitWindowMilliseconds": 1500 },
               "medium": { "padsInPlay": [1, 2, 3, 4, 5, 6], "hitWindowMilliseconds": 900 },
               "hard": { "padsInPlay": [1, 2, 3, 4, 5, 6, 7], "hitWindowMilliseconds": 650 },

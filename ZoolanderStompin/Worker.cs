@@ -5,54 +5,62 @@ namespace ZoolanderStompin;
 public class Worker : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(50);
-    private static readonly TimeSpan RoundRestartDelay = TimeSpan.FromSeconds(2);
 
     private readonly ILogger<Worker> _logger;
-    private readonly GameOptions _gameOptions;
     private readonly IGameIo _gameIo;
     private readonly IGameClock _clock;
-    private readonly IPadPicker _picker;
-    private TargetLoop _loop;
-    private TimedDeadline? _restartAt;
+    private readonly GameSession _session;
 
-    public Worker(
-        ILogger<Worker> logger,
-        GameOptions gameOptions,
-        IGameIo gameIo,
-        IGameClock clock,
-        IPadPicker picker)
+    public Worker(ILogger<Worker> logger, IGameIo gameIo, IGameClock clock, GameSession session)
     {
         _logger = logger;
-        _gameOptions = gameOptions;
         _gameIo = gameIo;
         _clock = clock;
-        _picker = picker;
-        _loop = CreateLoop(Difficulty.Easy);
+        _session = session;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
-            "{Product} target loop ready. Keys: 1-7 toggle pads (press once to stomp, again to lift). E/M/H starts a new round. Easy uses pads 1-4.",
+            "{Product} session ready. Keys: C credit, F service credit, E/M/H difficulty, 1-7 toggle pads (press once to stomp, again to lift).",
             GameInfo.Name);
-        StartRound(Difficulty.Easy);
 
-        _gameIo.Apply(_loop.ToOutput());
+        _gameIo.Apply(_session.ToOutput());
+
+        var lastPhase = _session.Phase;
+        var lastCredits = _session.Credits;
+        var lastScore = _session.Score;
 
         try
         {
             while (!stoppingToken.IsCancellationRequested)
             {
                 var input = _gameIo.Read();
-                ApplyDifficultyOrRestart(input);
+                _session.Tick(input);
 
-                var scoreBefore = _loop.Score;
-                var phaseBefore = _loop.Phase;
-                _loop.Tick(input);
-                LogScoreChange(scoreBefore);
-                LogRoundComplete(phaseBefore);
+                if (_session.Phase != lastPhase)
+                {
+                    _logger.LogInformation(
+                        "Phase {Phase}. Round {Round}. Credits {Credits}.",
+                        _session.Phase,
+                        _session.CurrentRound,
+                        _session.Credits);
+                    lastPhase = _session.Phase;
+                }
 
-                _gameIo.Apply(_loop.ToOutput());
+                if (_session.Credits != lastCredits)
+                {
+                    _logger.LogInformation(
+                        "Credits {Credits}. Coin meter {CoinMeter}.",
+                        _session.Credits,
+                        _session.CoinMeter);
+                    lastCredits = _session.Credits;
+                }
+
+                LogScoreChange(lastScore);
+                lastScore = _session.Score;
+
+                _gameIo.Apply(_session.ToOutput());
                 await _clock.Delay(PollInterval, stoppingToken);
             }
         }
@@ -61,77 +69,20 @@ public class Worker : BackgroundService
         }
     }
 
-    private void ApplyDifficultyOrRestart(GameIoInput input)
-    {
-        if (input.EasyHeld)
-        {
-            StartRound(Difficulty.Easy);
-            return;
-        }
-
-        if (input.MediumHeld)
-        {
-            StartRound(Difficulty.Medium);
-            return;
-        }
-
-        if (input.HardHeld)
-        {
-            StartRound(Difficulty.Hard);
-            return;
-        }
-
-        if (_loop.Phase == TargetLoopPhase.Complete && _restartAt is { IsExpired: true })
-        {
-            StartRound(_loop.Difficulty);
-        }
-    }
-
-    private void StartRound(Difficulty difficulty)
-    {
-        _loop = CreateLoop(difficulty);
-        _restartAt = null;
-        _logger.LogInformation(
-            "Starting {Difficulty} round. {PadCount} pads in play, {WindowMs} ms hit window, {Presentations} presentations.",
-            difficulty,
-            _gameOptions.For(difficulty).Pads.Count,
-            _gameOptions.For(difficulty).HitWindowMilliseconds,
-            _gameOptions.PresentationsPerRound);
-    }
-
-    private TargetLoop CreateLoop(Difficulty difficulty) =>
-        new(_gameOptions, difficulty, _clock, _picker);
-
     private void LogScoreChange(Score scoreBefore)
     {
-        if (_loop.Score.ResolvedPresentations <= scoreBefore.ResolvedPresentations)
+        if (_session.Score.ResolvedPresentations <= scoreBefore.ResolvedPresentations)
         {
             return;
         }
 
-        if (_loop.Score.Hits > scoreBefore.Hits)
+        if (_session.Score.Hits > scoreBefore.Hits)
         {
-            _logger.LogInformation("Hit. {Hits} hits, {Misses} misses.", _loop.Score.Hits, _loop.Score.Misses);
+            _logger.LogInformation("Hit. {Hits} hits, {Misses} misses.", _session.Score.Hits, _session.Score.Misses);
         }
         else
         {
-            _logger.LogInformation("Miss. {Hits} hits, {Misses} misses.", _loop.Score.Hits, _loop.Score.Misses);
+            _logger.LogInformation("Miss. {Hits} hits, {Misses} misses.", _session.Score.Hits, _session.Score.Misses);
         }
-    }
-
-    private void LogRoundComplete(TargetLoopPhase phaseBefore)
-    {
-        if (_loop.Phase != TargetLoopPhase.Complete || phaseBefore == TargetLoopPhase.Complete)
-        {
-            return;
-        }
-
-        _restartAt = new TimedDeadline(_clock, RoundRestartDelay);
-        _logger.LogInformation(
-            "Round finished. {Hits} hits, {Misses} misses ({Percent:0}%). Next round in {Seconds}s, or press E/M/H.",
-            _loop.Score.Hits,
-            _loop.Score.Misses,
-            _loop.Score.HitPercent ?? 0,
-            RoundRestartDelay.TotalSeconds);
     }
 }
