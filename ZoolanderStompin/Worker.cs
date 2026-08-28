@@ -7,12 +7,14 @@ public class Worker : BackgroundService
     private readonly ILogger<Worker> _logger;
     private readonly GameOptions _gameOptions;
     private readonly IGameIo _gameIo;
+    private readonly IGameClock _clock;
 
-    public Worker(ILogger<Worker> logger, GameOptions gameOptions, IGameIo gameIo)
+    public Worker(ILogger<Worker> logger, GameOptions gameOptions, IGameIo gameIo, IGameClock clock)
     {
         _logger = logger;
         _gameOptions = gameOptions;
         _gameIo = gameIo;
+        _clock = clock;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -30,7 +32,7 @@ public class Worker : BackgroundService
             {
                 var input = _gameIo.Read();
                 _gameIo.Apply(ToProbeOutput(input));
-                await Task.Delay(50, stoppingToken);
+                await _clock.Delay(TimeSpan.FromMilliseconds(50), stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

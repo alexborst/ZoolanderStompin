@@ -8,6 +8,7 @@ var gameOptions = builder.Configuration.GetSection(GameOptions.SectionName).Get<
 gameOptions.EnsureValid();
 builder.Services.AddSingleton(gameOptions);
 builder.Services.AddSingleton<IGameIo, KeyboardGameIo>();
+builder.Services.AddSingleton<IGameClock, SystemGameClock>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
