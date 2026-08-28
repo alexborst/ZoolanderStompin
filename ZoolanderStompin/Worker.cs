@@ -6,26 +6,49 @@ public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly GameOptions _gameOptions;
+    private readonly IGameIo _gameIo;
 
-    public Worker(ILogger<Worker> logger, GameOptions gameOptions)
+    public Worker(ILogger<Worker> logger, GameOptions gameOptions, IGameIo gameIo)
     {
         _logger = logger;
         _gameOptions = gameOptions;
+        _gameIo = gameIo;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
-            "{Product} host started. Easy hit window {HitWindowMs} ms.",
+            "{Product} host started. Easy hit window {HitWindowMs} ms. Keys: 1-7 pads, E/M/H difficulty, C credit, F service, N ticket notch.",
             GameInfo.Name,
             _gameOptions.Easy.HitWindowMilliseconds);
 
+        _gameIo.Apply(GameIoOutput.Off);
+
         try
         {
-            await Task.Delay(Timeout.Infinite, stoppingToken);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var input = _gameIo.Read();
+                _gameIo.Apply(ToProbeOutput(input));
+                await Task.Delay(50, stoppingToken);
+            }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
         }
+    }
+
+    private static GameIoOutput ToProbeOutput(GameIoInput input)
+    {
+        return new GameIoOutput(
+            padLampsOn: input.PadsHeld,
+            easyLampOn: input.EasyHeld,
+            mediumLampOn: input.MediumHeld,
+            hardLampOn: input.HardHeld,
+            pictorialLampsOn: GameIoOutput.Off.PictorialLampsOn,
+            scoreDigits: null,
+            ticketDigits: null,
+            sound: input.CreditHeld ? GameSound.Coin : null,
+            ticketEnable: false);
     }
 }

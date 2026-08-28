@@ -7,7 +7,7 @@ var gameOptions = builder.Configuration.GetSection(GameOptions.SectionName).Get<
     ?? throw new GameConfigurationException($"Configuration section '{GameOptions.SectionName}' is missing.");
 gameOptions.EnsureValid();
 builder.Services.AddSingleton(gameOptions);
-
+builder.Services.AddSingleton<IGameIo, KeyboardGameIo>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
