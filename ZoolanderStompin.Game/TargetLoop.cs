@@ -54,6 +54,8 @@ public sealed class TargetLoop
 
     public GameSound? Sound { get; private set; }
 
+    public int SoundGeneration { get; private set; }
+
     public void Tick(GameIoInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -139,7 +141,7 @@ public sealed class TargetLoop
         _window = new TimedDeadline(_clock, TimeSpan.FromMilliseconds(_difficultyOptions.HitWindowMilliseconds));
         _gap = null;
         Phase = TargetLoopPhase.Presenting;
-        Sound = GameSound.NewLight;
+        Cue(GameSound.NewLight);
         BlockPadsCurrentlyDown();
     }
 
@@ -178,7 +180,7 @@ public sealed class TargetLoop
     {
         Score = Score.WithHit();
         _resolvedThisRound++;
-        Sound = GameSound.Hit;
+        Cue(GameSound.Hit);
         EndPresentation();
     }
 
@@ -186,8 +188,14 @@ public sealed class TargetLoop
     {
         Score = Score.WithMiss();
         _resolvedThisRound++;
-        Sound = GameSound.Miss;
+        Cue(GameSound.Miss);
         EndPresentation();
+    }
+
+    private void Cue(GameSound sound)
+    {
+        Sound = sound;
+        SoundGeneration++;
     }
 
     private void EndPresentation()

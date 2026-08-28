@@ -6,6 +6,7 @@ public sealed class GameSession
     private readonly IGameClock _clock;
     private readonly IPadPicker _picker;
     private readonly ButtonEdges _buttons = new();
+    private readonly List<GameSound> _cues = [];
     private TargetLoop? _loop;
     private TimedDeadline? _phaseDeadline;
     private Score _score;
@@ -46,6 +47,13 @@ public sealed class GameSession
     public FloorPad? LastPresentedPad => _loop?.LastPresentedPad ?? _previousPad;
 
     public GameResult? Result { get; private set; }
+
+    public IReadOnlyList<GameSound> DrainCues()
+    {
+        var cues = _cues.ToArray();
+        _cues.Clear();
+        return cues;
+    }
 
     public void Tick(GameIoInput input)
     {
@@ -208,7 +216,7 @@ public sealed class GameSession
         {
             _countdownIsGetReady = false;
             _phaseDeadline = new TimedDeadline(_clock, Go);
-            Sound = GameSound.Countdown;
+            Cue(GameSound.Countdown);
             return;
         }
 
@@ -222,7 +230,14 @@ public sealed class GameSession
             EnterPlaying();
         }
 
-        _loop!.Tick(input);
+        var generation = _loop!.SoundGeneration;
+        _loop.Tick(input);
+        if (_loop.SoundGeneration != generation && _loop.Sound is { } loopSound)
+        {
+            _cues.Add(loopSound);
+            Sound = loopSound;
+        }
+
         if (_loop.Phase != TargetLoopPhase.Complete)
         {
             return;
@@ -280,7 +295,7 @@ public sealed class GameSession
     {
         CoinMeter++;
         _coinsTowardCredit++;
-        Sound = GameSound.Coin;
+        Cue(GameSound.Coin);
         if (_coinsTowardCredit < _options.CoinsPerCredit)
         {
             return;
@@ -293,7 +308,7 @@ public sealed class GameSession
     private void AddServiceCredit()
     {
         Credits++;
-        Sound = GameSound.Coin;
+        Cue(GameSound.Coin);
     }
 
     private void EnterSelect()
@@ -305,7 +320,7 @@ public sealed class GameSession
         ResetSelectTimeout();
         if (Sound is not GameSound.Coin)
         {
-            Sound = GameSound.Coin;
+            Cue(GameSound.Coin);
         }
     }
 
@@ -333,7 +348,7 @@ public sealed class GameSession
         _loop = null;
         _countdownIsGetReady = true;
         _phaseDeadline = new TimedDeadline(_clock, GetReady);
-        Sound = GameSound.Countdown;
+        Cue(GameSound.Countdown);
     }
 
     private void EnterPlaying()
@@ -346,7 +361,7 @@ public sealed class GameSession
         Phase = SessionPhase.Playing;
         _loop = new TargetLoop(_options, difficulty, _clock, _picker, _score, _previousPad);
         _phaseDeadline = null;
-        Sound = GameSound.Round;
+        Cue(GameSound.Round);
     }
 
     private void EnterIntermission()
@@ -354,7 +369,7 @@ public sealed class GameSession
         Phase = SessionPhase.Intermission;
         _loop = null;
         _phaseDeadline = new TimedDeadline(_clock, Intermission);
-        Sound = GameSound.Round;
+        Cue(GameSound.Round);
     }
 
     private void EnterResults()
@@ -364,7 +379,7 @@ public sealed class GameSession
         Result = result;
         _loop = null;
         _phaseDeadline = new TimedDeadline(_clock, ResultsHold);
-        Sound = result.Tickets > 0 ? GameSound.Ticket : GameSound.GameEnd;
+        Cue(result.Tickets > 0 ? GameSound.Ticket : GameSound.GameEnd);
     }
 
     private void EnterAttract()
@@ -399,4 +414,10 @@ public sealed class GameSession
             ticketDigits: ticketDigits,
             sound: Sound,
             ticketEnable: ticketEnable);
+
+    private void Cue(GameSound sound)
+    {
+        Sound = sound;
+        _cues.Add(sound);
+    }
 }
