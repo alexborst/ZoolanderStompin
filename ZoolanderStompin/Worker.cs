@@ -6,30 +6,31 @@ public class Worker : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(50);
 
-    private readonly ILogger<Worker> _logger;
     private readonly IGameIo _gameIo;
     private readonly IGameClock _clock;
     private readonly GameSession _session;
+    private readonly ConsolePlayHud _hud;
 
-    public Worker(ILogger<Worker> logger, IGameIo gameIo, IGameClock clock, GameSession session)
+    public Worker(IGameIo gameIo, IGameClock clock, GameSession session, ConsolePlayHud hud)
     {
-        _logger = logger;
         _gameIo = gameIo;
         _clock = clock;
         _session = session;
+        _hud = hud;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "{Product} session ready. Keys: C credit, F service credit, E/M/H difficulty, 1-7 stomp (tap the lit number; hold a key to stand on that pad).",
-            GameInfo.Name);
+        try
+        {
+            Console.Title = GameInfo.Name;
+        }
+        catch (IOException)
+        {
+        }
 
+        _hud.Render(_session);
         _gameIo.Apply(_session.ToOutput());
-
-        var lastPhase = _session.Phase;
-        var lastCredits = _session.Credits;
-        var lastScore = _session.Score;
 
         try
         {
@@ -37,70 +38,13 @@ public class Worker : BackgroundService
             {
                 var input = _gameIo.Read();
                 _session.Tick(input);
-
-                if (_session.Phase != lastPhase)
-                {
-                    _logger.LogInformation(
-                        "Phase {Phase}. Round {Round}. Credits {Credits}.",
-                        _session.Phase,
-                        _session.CurrentRound,
-                        _session.Credits);
-
-                    if (_session.Phase == SessionPhase.Results && _session.Result is { } result)
-                    {
-                        _logger.LogInformation(
-                            "{Outcome}. {Percent:0}% hits. Stub payout {Tickets} tickets.",
-                            result.Won ? "Win" : "Lose",
-                            result.HitPercent,
-                            result.Tickets);
-                    }
-
-                    lastPhase = _session.Phase;
-                }
-
-                if (_session.Credits != lastCredits)
-                {
-                    _logger.LogInformation(
-                        "Credits {Credits}. Coin meter {CoinMeter}.",
-                        _session.Credits,
-                        _session.CoinMeter);
-                    lastCredits = _session.Credits;
-                }
-
-                LogScoreChange(lastScore);
-                lastScore = _session.Score;
-
+                _hud.Render(_session);
                 _gameIo.Apply(_session.ToOutput());
                 await _clock.Delay(PollInterval, stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-        }
-    }
-
-    private void LogScoreChange(Score scoreBefore)
-    {
-        if (_session.Score.ResolvedPresentations <= scoreBefore.ResolvedPresentations)
-        {
-            return;
-        }
-
-        if (_session.Score.Hits > scoreBefore.Hits)
-        {
-            _logger.LogInformation(
-                "Hit pad {Pad}. {Hits} hits, {Misses} misses.",
-                _session.LastPresentedPad?.Number,
-                _session.Score.Hits,
-                _session.Score.Misses);
-        }
-        else
-        {
-            _logger.LogInformation(
-                "Miss pad {Pad}. {Hits} hits, {Misses} misses.",
-                _session.LastPresentedPad?.Number,
-                _session.Score.Hits,
-                _session.Score.Misses);
         }
     }
 }

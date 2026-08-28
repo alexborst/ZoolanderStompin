@@ -32,4 +32,6 @@ public static class KeyboardBindings
     public static bool IsServiceCredit(ConsoleKey key) => key is ConsoleKey.F;
 
     public static bool IsTicketNotch(ConsoleKey key) => key is ConsoleKey.N;
+
+    public static bool IsQuit(ConsoleKey key) => key is ConsoleKey.Escape;
 }

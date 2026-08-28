@@ -1,24 +1,24 @@
+using Microsoft.Extensions.Hosting;
 using ZoolanderStompin.Game;
 
 namespace ZoolanderStompin;
 
 public sealed class KeyboardGameIo : IGameIo
 {
-    private readonly ILogger<KeyboardGameIo> _logger;
     private readonly KeyboardPadLatch _pads;
+    private readonly IHostApplicationLifetime _lifetime;
     private bool _easyHeld;
     private bool _mediumHeld;
     private bool _hardHeld;
     private bool _creditPulse;
     private bool _serviceCreditPulse;
     private bool _ticketNotchPulse;
-    private string _lastRendered = "";
 
-    public KeyboardGameIo(ILogger<KeyboardGameIo> logger, IGameClock clock, GameOptions gameOptions)
+    public KeyboardGameIo(IGameClock clock, GameOptions gameOptions, IHostApplicationLifetime lifetime)
     {
-        _logger = logger;
         var holdMs = Math.Max(gameOptions.DebounceMilliseconds + 50, 80);
         _pads = new KeyboardPadLatch(clock, TimeSpan.FromMilliseconds(holdMs));
+        _lifetime = lifetime;
     }
 
     public GameIoInput Read()
@@ -48,28 +48,21 @@ public sealed class KeyboardGameIo : IGameIo
 
     public void Apply(GameIoOutput output)
     {
-        var line = FormatStatus(output);
-        if (line == _lastRendered)
-        {
-            return;
-        }
-
-        _lastRendered = line;
-        Console.WriteLine(line);
+        _ = output;
     }
 
     private void ApplyKey(ConsoleKey key)
     {
+        if (KeyboardBindings.IsQuit(key))
+        {
+            _lifetime.StopApplication();
+            return;
+        }
+
         var pad = KeyboardBindings.TryGetFloorPad(key);
         if (pad is { } floorPad)
         {
-            var alreadyHeld = _pads.IsHeld(floorPad);
             _pads.Press(floorPad);
-            if (!alreadyHeld)
-            {
-                _logger.LogInformation("Pad {Pad} stomp.", floorPad.Number);
-            }
-
             return;
         }
 
@@ -83,21 +76,18 @@ public sealed class KeyboardGameIo : IGameIo
         if (KeyboardBindings.IsCredit(key))
         {
             _creditPulse = true;
-            _logger.LogInformation("Credit.");
             return;
         }
 
         if (KeyboardBindings.IsServiceCredit(key))
         {
             _serviceCreditPulse = true;
-            _logger.LogInformation("Service credit.");
             return;
         }
 
         if (KeyboardBindings.IsTicketNotch(key))
         {
             _ticketNotchPulse = true;
-            _logger.LogInformation("Ticket notch.");
         }
     }
 
@@ -107,38 +97,13 @@ public sealed class KeyboardGameIo : IGameIo
         {
             case Difficulty.Easy:
                 _easyHeld = true;
-                _logger.LogInformation("Easy.");
                 break;
             case Difficulty.Medium:
                 _mediumHeld = true;
-                _logger.LogInformation("Medium.");
                 break;
             case Difficulty.Hard:
                 _hardHeld = true;
-                _logger.LogInformation("Hard.");
                 break;
         }
     }
-
-    private string FormatStatus(GameIoOutput output)
-    {
-        var pads = string.Join(
-            " ",
-            Enumerable.Range(1, FloorPad.Count).Select(n =>
-            {
-                var pad = new FloorPad(n);
-                return output.IsPadLampOn(pad) ? $"[{n}]" : $" {n} ";
-            }));
-
-        var difficulty =
-            $"{Lamp("Easy", output.EasyLampOn)} {Lamp("Medium", output.MediumLampOn)} {Lamp("Hard", output.HardLampOn)}";
-        var pictorial = string.Join(" ", output.PictorialLampsOn.Select(on => on ? "*" : "."));
-        var score = output.ScoreDigits?.ToString("00") ?? "--";
-        var tickets = output.TicketDigits?.ToString("00") ?? "--";
-        var sound = output.Sound?.ToString() ?? "-";
-
-        return $"pads {pads} | {difficulty} | pics {pictorial} | score {score} tickets {tickets} | sound {sound}";
-    }
-
-    private static string Lamp(string name, bool on) => on ? $"[{name}]" : name;
 }

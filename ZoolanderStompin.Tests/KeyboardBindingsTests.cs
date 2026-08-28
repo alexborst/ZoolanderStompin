@@ -31,5 +31,6 @@ public class KeyboardBindingsTests
         Assert.IsTrue(KeyboardBindings.IsCredit(ConsoleKey.Enter));
         Assert.IsTrue(KeyboardBindings.IsServiceCredit(ConsoleKey.F));
         Assert.IsTrue(KeyboardBindings.IsTicketNotch(ConsoleKey.N));
+        Assert.IsTrue(KeyboardBindings.IsQuit(ConsoleKey.Escape));
     }
 }
