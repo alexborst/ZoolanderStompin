@@ -4,3 +4,7 @@
 
 /ZoolanderStompin/.vs/ZoolanderStompin
 /ZoolanderStompin/obj
+/ZoolanderStompin/bin/Debug/net9.0
+/ZoolanderStompin/packages
+/ZoolanderStompin.Game/obj
+/ZoolanderStompin.Tests/obj/Debug
