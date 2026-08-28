@@ -21,6 +21,9 @@ public sealed class KeyboardGameIo : IGameIo
 
     public GameIoInput Read()
     {
+        _easyHeld = false;
+        _mediumHeld = false;
+        _hardHeld = false;
         _creditPulse = false;
         _serviceCreditPulse = false;
         _ticketNotchPulse = false;
@@ -70,7 +73,7 @@ public sealed class KeyboardGameIo : IGameIo
         var difficulty = KeyboardBindings.TryGetDifficulty(key);
         if (difficulty is { } selected)
         {
-            ToggleDifficulty(selected);
+            PulseDifficulty(selected);
             return;
         }
 
@@ -95,21 +98,21 @@ public sealed class KeyboardGameIo : IGameIo
         }
     }
 
-    private void ToggleDifficulty(Difficulty difficulty)
+    private void PulseDifficulty(Difficulty difficulty)
     {
         switch (difficulty)
         {
             case Difficulty.Easy:
-                _easyHeld = !_easyHeld;
-                _logger.LogInformation("Easy {State}.", _easyHeld ? "held" : "released");
+                _easyHeld = true;
+                _logger.LogInformation("Easy.");
                 break;
             case Difficulty.Medium:
-                _mediumHeld = !_mediumHeld;
-                _logger.LogInformation("Medium {State}.", _mediumHeld ? "held" : "released");
+                _mediumHeld = true;
+                _logger.LogInformation("Medium.");
                 break;
             case Difficulty.Hard:
-                _hardHeld = !_hardHeld;
-                _logger.LogInformation("Hard {State}.", _hardHeld ? "held" : "released");
+                _hardHeld = true;
+                _logger.LogInformation("Hard.");
                 break;
         }
     }
