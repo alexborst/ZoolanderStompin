@@ -26,4 +26,12 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ZoolanderStompin.Game\ZoolanderStompin.Game.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\ZoolanderStompin\appsettings.json" Link="host-appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
