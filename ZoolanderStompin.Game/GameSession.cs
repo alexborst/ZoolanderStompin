@@ -315,6 +315,8 @@ public sealed class GameSession
     {
         Phase = SessionPhase.Select;
         SelectedDifficulty = null;
+        CurrentRound = 0;
+        _score = default;
         Result = null;
         _loop = null;
         ResetSelectTimeout();
@@ -387,6 +389,7 @@ public sealed class GameSession
         Phase = SessionPhase.Attract;
         SelectedDifficulty = null;
         CurrentRound = 0;
+        _score = default;
         Result = null;
         _loop = null;
         _attractPad = new FloorPad(1);

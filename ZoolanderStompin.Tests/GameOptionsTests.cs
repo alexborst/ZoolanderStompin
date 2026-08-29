@@ -40,17 +40,53 @@ public class GameOptionsTests
     }
 
     [TestMethod]
-    public void Host_appsettings_loads_without_a_recompile_and_matches_defaults()
+    public void Host_appsettings_is_the_frozen_mvp_default()
     {
         var json = File.ReadAllText("host-appsettings.json");
-        using var document = JsonDocument.Parse(json);
+        using var document = JsonDocument.Parse(json, new JsonDocumentOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+        });
         var gameJson = document.RootElement.GetProperty("Game").GetRawText();
         var fromFile = GameOptions.FromJson(gameJson);
         var defaults = GameOptions.CreateDefault();
 
-        Assert.AreEqual(defaults.Easy.HitWindowMilliseconds, fromFile.Easy.HitWindowMilliseconds);
-        Assert.AreEqual(defaults.RoundCount, fromFile.RoundCount);
-        Assert.AreEqual(defaults.Payout.TicketsForHitPercent(100), fromFile.Payout.TicketsForHitPercent(100));
+        AssertFrozenMatch(defaults, fromFile);
+    }
+
+    internal static void AssertFrozenMatch(GameOptions expected, GameOptions actual)
+    {
+        Assert.AreEqual(expected.DebounceMilliseconds, actual.DebounceMilliseconds);
+        Assert.AreEqual(expected.PresentationsPerRound, actual.PresentationsPerRound);
+        Assert.AreEqual(expected.RoundCount, actual.RoundCount);
+        Assert.AreEqual(expected.PreventConsecutiveRepeat, actual.PreventConsecutiveRepeat);
+        Assert.AreEqual(expected.InterTargetGapMilliseconds, actual.InterTargetGapMilliseconds);
+        Assert.AreEqual(expected.WinPercentThreshold, actual.WinPercentThreshold);
+        Assert.AreEqual(expected.SelectTimeoutSeconds, actual.SelectTimeoutSeconds);
+        Assert.AreEqual(expected.SelectTimeoutAction, actual.SelectTimeoutAction);
+        Assert.AreEqual(expected.CountdownGetReadyMilliseconds, actual.CountdownGetReadyMilliseconds);
+        Assert.AreEqual(expected.CountdownGoMilliseconds, actual.CountdownGoMilliseconds);
+        Assert.AreEqual(expected.IntermissionMilliseconds, actual.IntermissionMilliseconds);
+        Assert.AreEqual(expected.ResultsMilliseconds, actual.ResultsMilliseconds);
+        Assert.AreEqual(expected.AttractLampCycleMilliseconds, actual.AttractLampCycleMilliseconds);
+        Assert.AreEqual(expected.FreePlay, actual.FreePlay);
+        Assert.AreEqual(expected.CoinsPerCredit, actual.CoinsPerCredit);
+        CollectionAssert.AreEqual(expected.Easy.PadsInPlay, actual.Easy.PadsInPlay);
+        Assert.AreEqual(expected.Easy.HitWindowMilliseconds, actual.Easy.HitWindowMilliseconds);
+        CollectionAssert.AreEqual(expected.Medium.PadsInPlay, actual.Medium.PadsInPlay);
+        Assert.AreEqual(expected.Medium.HitWindowMilliseconds, actual.Medium.HitWindowMilliseconds);
+        CollectionAssert.AreEqual(expected.Hard.PadsInPlay, actual.Hard.PadsInPlay);
+        Assert.AreEqual(expected.Hard.HitWindowMilliseconds, actual.Hard.HitWindowMilliseconds);
+        Assert.AreEqual(expected.Payout.Mode, actual.Payout.Mode);
+        Assert.AreEqual(expected.Payout.FixedTickets, actual.Payout.FixedTickets);
+        Assert.AreEqual(expected.Payout.Table.Count, actual.Payout.Table.Count);
+        for (var i = 0; i < expected.Payout.Table.Count; i++)
+        {
+            Assert.AreEqual(expected.Payout.Table[i].MinPercentInclusive, actual.Payout.Table[i].MinPercentInclusive);
+            Assert.AreEqual(expected.Payout.Table[i].MaxPercentInclusive, actual.Payout.Table[i].MaxPercentInclusive);
+            Assert.AreEqual(expected.Payout.Table[i].Tickets, actual.Payout.Table[i].Tickets);
+        }
     }
 
     [TestMethod]

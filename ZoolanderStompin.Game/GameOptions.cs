@@ -65,6 +65,10 @@ public sealed class GameOptions
         _ => throw new ArgumentOutOfRangeException(nameof(difficulty), difficulty, null),
     };
 
+    /// <summary>
+    /// Frozen software-MVP defaults (keyboard playtest, step 12).
+    /// Tune via the Game section of appsettings.json — do not scatter these numbers in gameplay code.
+    /// </summary>
     public static GameOptions CreateDefault()
     {
         var options = new GameOptions
