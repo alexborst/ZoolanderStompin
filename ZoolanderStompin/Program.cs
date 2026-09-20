@@ -12,10 +12,14 @@ builder.Services.AddSingleton<IGameClock, SystemGameClock>();
 builder.Services.AddSingleton<IPadPicker, RandomPadPicker>();
 builder.Services.AddSingleton<GameSession>();
 builder.Services.AddSingleton<ConsolePlayHud>();
+#if LINUX_HOST
+builder.Services.AddSingleton<IGameAudio, SilentGameAudio>();
+#else
 builder.Services.AddSingleton<IGameAudio>(services =>
     OperatingSystem.IsWindows()
         ? new WindowsGameAudio(services.GetRequiredService<IHostEnvironment>())
         : new SilentGameAudio());
+#endif
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
