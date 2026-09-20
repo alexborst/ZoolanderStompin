@@ -44,4 +44,18 @@ public sealed class GameIoInput
     public bool TicketNotchHeld { get; }
 
     public bool IsPadHeld(FloorPad pad) => PadsHeld.Contains(pad);
+
+    public GameIoInput Combine(GameIoInput other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        return new GameIoInput(
+            padsHeld: PadsHeld.Concat(other.PadsHeld),
+            easyHeld: EasyHeld || other.EasyHeld,
+            mediumHeld: MediumHeld || other.MediumHeld,
+            hardHeld: HardHeld || other.HardHeld,
+            creditHeld: CreditHeld || other.CreditHeld,
+            serviceCreditHeld: ServiceCreditHeld || other.ServiceCreditHeld,
+            ticketNotchHeld: TicketNotchHeld || other.TicketNotchHeld);
+    }
 }

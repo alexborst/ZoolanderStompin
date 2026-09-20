@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.10" />
+    <PackageReference Include="System.Device.Gpio" Version="3.2.0" />
     <PackageReference Include="System.Windows.Extensions" Version="9.0.10" Condition="'$(RuntimeIdentifier)' != 'linux-arm64' and '$(RuntimeIdentifier)' != 'linux-arm'" />
   </ItemGroup>
 

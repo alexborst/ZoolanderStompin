@@ -37,6 +37,9 @@ public class GameOptionsTests
         Assert.AreEqual(0, options.Payout.TicketsForHitPercent(0));
         Assert.AreEqual(2, options.Payout.TicketsForHitPercent(50));
         Assert.AreEqual(8, options.Payout.TicketsForHitPercent(100));
+        Assert.AreEqual(IoAdapter.Auto, options.Io.Adapter);
+        Assert.AreEqual(17, options.Io.Gpio.Pad1InputBcm);
+        Assert.AreEqual(27, options.Io.Gpio.Pad1LampBcm);
     }
 
     [TestMethod]
@@ -87,6 +90,10 @@ public class GameOptionsTests
             Assert.AreEqual(expected.Payout.Table[i].MaxPercentInclusive, actual.Payout.Table[i].MaxPercentInclusive);
             Assert.AreEqual(expected.Payout.Table[i].Tickets, actual.Payout.Table[i].Tickets);
         }
+
+        Assert.AreEqual(expected.Io.Adapter, actual.Io.Adapter);
+        Assert.AreEqual(expected.Io.Gpio.Pad1InputBcm, actual.Io.Gpio.Pad1InputBcm);
+        Assert.AreEqual(expected.Io.Gpio.Pad1LampBcm, actual.Io.Gpio.Pad1LampBcm);
     }
 
     [TestMethod]
@@ -171,5 +178,23 @@ public class GameOptionsTests
         options.EnsureValid();
         Assert.AreEqual(3, options.Payout.TicketsForHitPercent(0));
         Assert.AreEqual(3, options.Payout.TicketsForHitPercent(100));
+    }
+
+    [TestMethod]
+    public void Rejects_the_same_bcm_pin_for_pad1_input_and_lamp()
+    {
+        var options = GameOptions.CreateDefault();
+        options.Io.Gpio.Pad1LampBcm = options.Io.Gpio.Pad1InputBcm;
+
+        var ex = Assert.ThrowsException<GameConfigurationException>(options.EnsureValid);
+        StringAssert.Contains(ex.Message, "Pad1InputBcm");
+    }
+
+    [TestMethod]
+    public void Auto_io_uses_gpio_on_linux_only()
+    {
+        var options = GameOptions.CreateDefault();
+        Assert.IsTrue(options.Io.UseGpio(isLinux: true));
+        Assert.IsFalse(options.Io.UseGpio(isLinux: false));
     }
 }

@@ -57,6 +57,8 @@ public sealed class GameOptions
 
     public PayoutOptions Payout { get; set; } = new();
 
+    public IoOptions Io { get; set; } = new();
+
     public DifficultyOptions For(Difficulty difficulty) => difficulty switch
     {
         Difficulty.Easy => Easy,
@@ -117,6 +119,15 @@ public sealed class GameOptions
                     new PayoutBand { MinPercentInclusive = 100, MaxPercentInclusive = 100, Tickets = 8 },
                 ],
             },
+            Io = new IoOptions
+            {
+                Adapter = IoAdapter.Auto,
+                Gpio = new GpioOptions
+                {
+                    Pad1InputBcm = GpioOptions.DefaultPad1InputBcm,
+                    Pad1LampBcm = GpioOptions.DefaultPad1LampBcm,
+                },
+            },
         };
 
         options.EnsureValid();
@@ -143,11 +154,14 @@ public sealed class GameOptions
     public void EnsureValid()
     {
         var errors = new List<string>();
+        Io ??= new IoOptions();
+        Io.Gpio ??= new GpioOptions();
         ValidateTiming(errors);
         ValidateDifficulty("Easy", Easy, errors);
         ValidateDifficulty("Medium", Medium, errors);
         ValidateDifficulty("Hard", Hard, errors);
         ValidatePayout(Payout, errors);
+        ValidateIo(Io, errors);
 
         if (errors.Count > 0)
         {
@@ -220,6 +234,29 @@ public sealed class GameOptions
         if (CoinsPerCredit < 1)
         {
             errors.Add("CoinsPerCredit must be at least 1.");
+        }
+    }
+
+    private static void ValidateIo(IoOptions io, List<string> errors)
+    {
+        if (!Enum.IsDefined(io.Adapter))
+        {
+            errors.Add("Io adapter is not a recognized value.");
+        }
+
+        ValidateBcm("Pad1InputBcm", io.Gpio.Pad1InputBcm, errors);
+        ValidateBcm("Pad1LampBcm", io.Gpio.Pad1LampBcm, errors);
+        if (io.Gpio.Pad1InputBcm == io.Gpio.Pad1LampBcm)
+        {
+            errors.Add("Pad1InputBcm and Pad1LampBcm must be different pins.");
+        }
+    }
+
+    private static void ValidateBcm(string name, int bcm, List<string> errors)
+    {
+        if (bcm is < GpioOptions.MinBcm or > GpioOptions.MaxBcm)
+        {
+            errors.Add($"{name} must be a BCM pin between {GpioOptions.MinBcm} and {GpioOptions.MaxBcm}.");
         }
     }
 
