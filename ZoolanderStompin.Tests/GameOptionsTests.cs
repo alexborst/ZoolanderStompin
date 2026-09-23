@@ -39,6 +39,8 @@ public class GameOptionsTests
         Assert.AreEqual(8, options.Payout.TicketsForHitPercent(100));
         Assert.AreEqual(IoAdapter.Auto, options.Io.Adapter);
         Assert.AreEqual(17, options.Io.Gpio.Pad1InputBcm);
+        Assert.AreEqual(22, options.Io.Gpio.Pad2InputBcm);
+        Assert.AreEqual(26, options.Io.Gpio.CreditInputBcm);
         Assert.AreEqual(27, options.Io.Gpio.Pad1LampBcm);
     }
 
@@ -92,8 +94,9 @@ public class GameOptionsTests
         }
 
         Assert.AreEqual(expected.Io.Adapter, actual.Io.Adapter);
-        Assert.AreEqual(expected.Io.Gpio.Pad1InputBcm, actual.Io.Gpio.Pad1InputBcm);
-        Assert.AreEqual(expected.Io.Gpio.Pad1LampBcm, actual.Io.Gpio.Pad1LampBcm);
+        CollectionAssert.AreEqual(
+            expected.Io.Gpio.MappedPins().Select(pin => pin.Bcm).ToArray(),
+            actual.Io.Gpio.MappedPins().Select(pin => pin.Bcm).ToArray());
     }
 
     [TestMethod]
@@ -181,13 +184,13 @@ public class GameOptionsTests
     }
 
     [TestMethod]
-    public void Rejects_the_same_bcm_pin_for_pad1_input_and_lamp()
+    public void Rejects_duplicate_gpio_pins()
     {
         var options = GameOptions.CreateDefault();
-        options.Io.Gpio.Pad1LampBcm = options.Io.Gpio.Pad1InputBcm;
+        options.Io.Gpio.Pad2InputBcm = options.Io.Gpio.Pad1InputBcm;
 
         var ex = Assert.ThrowsException<GameConfigurationException>(options.EnsureValid);
-        StringAssert.Contains(ex.Message, "Pad1InputBcm");
+        StringAssert.Contains(ex.Message, "must be different pins");
     }
 
     [TestMethod]

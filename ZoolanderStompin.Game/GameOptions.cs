@@ -122,11 +122,7 @@ public sealed class GameOptions
             Io = new IoOptions
             {
                 Adapter = IoAdapter.Auto,
-                Gpio = new GpioOptions
-                {
-                    Pad1InputBcm = GpioOptions.DefaultPad1InputBcm,
-                    Pad1LampBcm = GpioOptions.DefaultPad1LampBcm,
-                },
+                Gpio = new GpioOptions(),
             },
         };
 
@@ -244,11 +240,14 @@ public sealed class GameOptions
             errors.Add("Io adapter is not a recognized value.");
         }
 
-        ValidateBcm("Pad1InputBcm", io.Gpio.Pad1InputBcm, errors);
-        ValidateBcm("Pad1LampBcm", io.Gpio.Pad1LampBcm, errors);
-        if (io.Gpio.Pad1InputBcm == io.Gpio.Pad1LampBcm)
+        var seen = new Dictionary<int, string>();
+        foreach (var (name, bcm) in io.Gpio.MappedPins())
         {
-            errors.Add("Pad1InputBcm and Pad1LampBcm must be different pins.");
+            ValidateBcm(name, bcm, errors);
+            if (!seen.TryAdd(bcm, name))
+            {
+                errors.Add($"{name} and {seen[bcm]} must be different pins.");
+            }
         }
     }
 

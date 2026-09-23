@@ -2,8 +2,6 @@ namespace ZoolanderStompin.Game;
 
 public sealed class GpioGameIo : IGameIo
 {
-    private static readonly FloorPad Pad1 = new(1);
-
     private readonly GpioOptions _pins;
     private readonly IGpioBank _bank;
 
@@ -14,19 +12,35 @@ public sealed class GpioGameIo : IGameIo
 
         _pins = pins;
         _bank = bank;
-        _bank.OpenInputPullUp(_pins.Pad1InputBcm);
+        for (var number = 1; number <= FloorPad.Count; number++)
+        {
+            _bank.OpenInputPullUp(_pins.InputBcmForPad(number));
+        }
+
+        _bank.OpenInputPullUp(_pins.EasyInputBcm);
+        _bank.OpenInputPullUp(_pins.MediumInputBcm);
+        _bank.OpenInputPullUp(_pins.HardInputBcm);
+        _bank.OpenInputPullUp(_pins.CreditInputBcm);
         _bank.OpenOutput(_pins.Pad1LampBcm, initialHigh: false);
     }
 
     public GameIoInput Read()
     {
-        var pressed = !_bank.ReadHigh(_pins.Pad1InputBcm);
+        var held = new List<FloorPad>();
+        for (var number = 1; number <= FloorPad.Count; number++)
+        {
+            if (IsPressed(_pins.InputBcmForPad(number)))
+            {
+                held.Add(new FloorPad(number));
+            }
+        }
+
         return new GameIoInput(
-            padsHeld: pressed ? [Pad1] : [],
-            easyHeld: false,
-            mediumHeld: false,
-            hardHeld: false,
-            creditHeld: false,
+            padsHeld: held,
+            easyHeld: IsPressed(_pins.EasyInputBcm),
+            mediumHeld: IsPressed(_pins.MediumInputBcm),
+            hardHeld: IsPressed(_pins.HardInputBcm),
+            creditHeld: IsPressed(_pins.CreditInputBcm),
             serviceCreditHeld: false,
             ticketNotchHeld: false);
     }
@@ -34,6 +48,8 @@ public sealed class GpioGameIo : IGameIo
     public void Apply(GameIoOutput output)
     {
         ArgumentNullException.ThrowIfNull(output);
-        _bank.WriteHigh(_pins.Pad1LampBcm, output.IsPadLampOn(Pad1));
+        _bank.WriteHigh(_pins.Pad1LampBcm, output.IsPadLampOn(new FloorPad(1)));
     }
+
+    private bool IsPressed(int bcm) => !_bank.ReadHigh(bcm);
 }

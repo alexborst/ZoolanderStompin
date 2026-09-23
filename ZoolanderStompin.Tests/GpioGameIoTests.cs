@@ -49,4 +49,27 @@ public class GpioGameIoTests
         io.Apply(GameIoOutput.Off);
         Assert.IsFalse(bank.ReadHigh(GpioOptions.DefaultPad1LampBcm));
     }
+
+    [TestMethod]
+    public void Pad_difficulty_and_credit_inputs_are_held_when_low()
+    {
+        var pins = new GpioOptions();
+        var bank = new FakeGpioBank();
+        var io = new GpioGameIo(pins, bank);
+        bank.SetHigh(pins.Pad3InputBcm, false);
+        bank.SetHigh(pins.Pad7InputBcm, false);
+        bank.SetHigh(pins.EasyInputBcm, false);
+        bank.SetHigh(pins.CreditInputBcm, false);
+
+        var input = io.Read();
+
+        Assert.IsFalse(input.IsPadHeld(new FloorPad(1)));
+        Assert.IsTrue(input.IsPadHeld(new FloorPad(3)));
+        Assert.IsTrue(input.IsPadHeld(new FloorPad(7)));
+        Assert.IsTrue(input.EasyHeld);
+        Assert.IsFalse(input.MediumHeld);
+        Assert.IsFalse(input.HardHeld);
+        Assert.IsTrue(input.CreditHeld);
+        Assert.IsFalse(input.ServiceCreditHeld);
+    }
 }
