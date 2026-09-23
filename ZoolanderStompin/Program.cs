@@ -1,3 +1,5 @@
+using Avalonia;
+using Avalonia.Controls;
 using ZoolanderStompin;
 using ZoolanderStompin.Game;
 
@@ -7,6 +9,7 @@ var gameOptions = builder.Configuration.GetSection(GameOptions.SectionName).Get<
     ?? throw new GameConfigurationException($"Configuration section '{GameOptions.SectionName}' is missing.");
 gameOptions.EnsureValid();
 builder.Services.AddSingleton(gameOptions);
+builder.Services.AddSingleton<KeyPressQueue>();
 builder.Services.AddSingleton<KeyboardGameIo>();
 
 var linux = OperatingSystem.IsLinux();
@@ -36,7 +39,13 @@ builder.Services.AddSingleton(services => GameIoFactory.Create(services, gameOpt
 builder.Services.AddSingleton<IGameClock, SystemGameClock>();
 builder.Services.AddSingleton<IPadPicker, RandomPadPicker>();
 builder.Services.AddSingleton<GameSession>();
+builder.Services.AddSingleton<ScoreboardViewModel>();
 builder.Services.AddSingleton<ConsolePlayHud>();
+builder.Services.AddSingleton<AvaloniaPlayHud>();
+builder.Services.AddSingleton<IPlayHud>(services => new CompositePlayHud(
+    services.GetRequiredService<AvaloniaPlayHud>(),
+    services.GetRequiredService<ConsolePlayHud>()));
+builder.Services.AddSingleton<ScoreboardWindow>();
 #if LINUX_HOST
 builder.Services.AddSingleton<IGameAudio, SilentGameAudio>();
 #else
@@ -48,4 +57,27 @@ builder.Services.AddSingleton<IGameAudio>(services =>
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
-host.Run();
+try
+{
+    BuildAvaloniaApp()
+        .AfterSetup(appBuilder =>
+        {
+            if (appBuilder.Instance is App app)
+            {
+                app.Host = host;
+                app.Services = host.Services;
+            }
+        })
+        .StartWithClassicDesktopLifetime(args);
+}
+finally
+{
+    await host.StopAsync();
+    host.Dispose();
+}
+
+AppBuilder BuildAvaloniaApp() =>
+    AppBuilder.Configure<App>()
+        .UsePlatformDetect()
+        .WithInterFont()
+        .LogToTrace();

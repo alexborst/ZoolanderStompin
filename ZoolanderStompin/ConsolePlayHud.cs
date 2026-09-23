@@ -2,7 +2,7 @@ using ZoolanderStompin.Game;
 
 namespace ZoolanderStompin;
 
-public sealed class ConsolePlayHud
+public sealed class ConsolePlayHud : IPlayHud
 {
     private string _last = "";
     private bool _cleared;

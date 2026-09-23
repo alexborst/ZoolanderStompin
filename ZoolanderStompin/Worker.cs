@@ -9,10 +9,10 @@ public class Worker : BackgroundService
     private readonly IGameIo _gameIo;
     private readonly IGameClock _clock;
     private readonly GameSession _session;
-    private readonly ConsolePlayHud _hud;
+    private readonly IPlayHud _hud;
     private readonly IGameAudio _audio;
 
-    public Worker(IGameIo gameIo, IGameClock clock, GameSession session, ConsolePlayHud hud, IGameAudio audio)
+    public Worker(IGameIo gameIo, IGameClock clock, GameSession session, IPlayHud hud, IGameAudio audio)
     {
         _gameIo = gameIo;
         _clock = clock;

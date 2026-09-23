@@ -7,6 +7,7 @@ public sealed class KeyboardGameIo : IGameIo
 {
     private readonly KeyboardPadLatch _pads;
     private readonly IHostApplicationLifetime _lifetime;
+    private readonly KeyPressQueue _keys;
     private bool _easyHeld;
     private bool _mediumHeld;
     private bool _hardHeld;
@@ -14,11 +15,16 @@ public sealed class KeyboardGameIo : IGameIo
     private bool _serviceCreditPulse;
     private bool _ticketNotchPulse;
 
-    public KeyboardGameIo(IGameClock clock, GameOptions gameOptions, IHostApplicationLifetime lifetime)
+    public KeyboardGameIo(
+        IGameClock clock,
+        GameOptions gameOptions,
+        IHostApplicationLifetime lifetime,
+        KeyPressQueue keys)
     {
         var holdMs = Math.Max(gameOptions.DebounceMilliseconds + 50, 80);
         _pads = new KeyboardPadLatch(clock, TimeSpan.FromMilliseconds(holdMs));
         _lifetime = lifetime;
+        _keys = keys;
     }
 
     public GameIoInput Read()
@@ -30,10 +36,10 @@ public sealed class KeyboardGameIo : IGameIo
         _serviceCreditPulse = false;
         _ticketNotchPulse = false;
 
-        while (Console.KeyAvailable)
+        DrainConsoleKeys();
+        while (_keys.TryDequeue(out var queued))
         {
-            var key = Console.ReadKey(intercept: true).Key;
-            ApplyKey(key);
+            ApplyKey(queued);
         }
 
         return new GameIoInput(
@@ -49,6 +55,23 @@ public sealed class KeyboardGameIo : IGameIo
     public void Apply(GameIoOutput output)
     {
         _ = output;
+    }
+
+    private void DrainConsoleKeys()
+    {
+        try
+        {
+            while (Console.KeyAvailable)
+            {
+                ApplyKey(Console.ReadKey(intercept: true).Key);
+            }
+        }
+        catch (InvalidOperationException)
+        {
+        }
+        catch (IOException)
+        {
+        }
     }
 
     private void ApplyKey(ConsoleKey key)

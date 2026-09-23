@@ -1,0 +1,117 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ZoolanderStompin"
+        x:Class="ZoolanderStompin.ScoreboardWindow"
+        x:DataType="vm:ScoreboardViewModel"
+        Title="{Binding Title}"
+        Background="#0B1020"
+        Foreground="#F4F1E8"
+        Width="1280"
+        Height="720"
+        MinWidth="800"
+        MinHeight="480"
+        Focusable="True"
+        TransparencyLevelHint="None">
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LetterSpacing" Value="6" />
+            <Setter Property="Foreground" Value="#8A93A6" />
+        </Style>
+        <Style Selector="TextBlock.digits">
+            <Setter Property="FontSize" Value="168" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="LineHeight" Value="176" />
+        </Style>
+        <Style Selector="TextBlock.outcome.win">
+            <Setter Property="Foreground" Value="#7CFFB2" />
+        </Style>
+        <Style Selector="TextBlock.outcome.lose">
+            <Setter Property="Foreground" Value="#FF6B6B" />
+        </Style>
+    </Window.Styles>
+    <Viewbox Stretch="Uniform">
+        <Grid Width="1920" Height="1080" Margin="64">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding Title}"
+                           FontSize="44"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="28" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Phase}" FontSize="36" FontWeight="SemiBold" Foreground="#C9D4EA" />
+                    <TextBlock Classes="outcome"
+                               Classes.win="{Binding IsWin}"
+                               Classes.lose="{Binding IsLose}"
+                               Text="{Binding Outcome}"
+                               FontSize="36"
+                               FontWeight="Bold" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,24,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Classes="label" Text="CREDITS" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Credits}" FontSize="36" FontWeight="Bold" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" FontSize="32" Text="{Binding Round}" Foreground="#C9D4EA" />
+            </Grid>
+
+            <Grid Grid.Row="2" ColumnDefinitions="*,*,*" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Classes="label" Text="HITS" />
+                    <TextBlock Classes="digits" Text="{Binding Hits}" Foreground="#7CFFB2" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Classes="label" Text="MISSES" />
+                    <TextBlock Classes="digits" Text="{Binding Misses}" Foreground="#FF6B6B" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Classes="label" Text="SCORE" />
+                    <TextBlock Classes="digits" Text="{Binding Percent}" Foreground="#F5C542" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                <TextBlock Text="{Binding Prompt}" FontSize="40" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Classes="label" Text="TICKETS" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Tickets}" FontSize="40" FontWeight="Bold" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Grid.Row="4"
+                       Margin="0,28,0,0"
+                       Text="{Binding Pads}"
+                       FontSize="48"
+                       FontWeight="Bold"
+                       FontFamily="Cascadia Mono, Consolas, monospace" />
+
+            <Grid Grid.Row="5" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+                <TextBlock Text="{Binding Difficulty}" FontSize="32" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <TextBlock Classes="label" Text="PICS" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Pictorial}"
+                               FontSize="32"
+                               FontFamily="Cascadia Mono, Consolas, monospace" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Grid.Row="6"
+                       Margin="0,32,0,0"
+                       Text="{Binding KeyLegend}"
+                       FontSize="22"
+                       Foreground="#6B7385" />
+        </Grid>
+    </Viewbox>
+</Window>
