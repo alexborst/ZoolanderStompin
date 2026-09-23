@@ -4,28 +4,39 @@ public sealed class GpioGameIo : IGameIo
 {
     private readonly GpioOptions _pins;
     private readonly IGpioBank _bank;
+    private readonly bool _readPadInputs;
 
-    public GpioGameIo(GpioOptions pins, IGpioBank bank)
+    public GpioGameIo(GpioOptions pins, IGpioBank bank, bool readPadInputs = true)
     {
         ArgumentNullException.ThrowIfNull(pins);
         ArgumentNullException.ThrowIfNull(bank);
 
         _pins = pins;
         _bank = bank;
-        for (var number = 1; number <= FloorPad.Count; number++)
+        _readPadInputs = readPadInputs;
+        if (_readPadInputs)
         {
-            _bank.OpenInputPullUp(_pins.InputBcmForPad(number));
+            for (var number = 1; number <= FloorPad.Count; number++)
+            {
+                _bank.OpenInputPullUp(_pins.InputBcmForPad(number));
+            }
+
+            _bank.OpenInputPullUp(_pins.EasyInputBcm);
+            _bank.OpenInputPullUp(_pins.MediumInputBcm);
+            _bank.OpenInputPullUp(_pins.HardInputBcm);
+            _bank.OpenInputPullUp(_pins.CreditInputBcm);
         }
 
-        _bank.OpenInputPullUp(_pins.EasyInputBcm);
-        _bank.OpenInputPullUp(_pins.MediumInputBcm);
-        _bank.OpenInputPullUp(_pins.HardInputBcm);
-        _bank.OpenInputPullUp(_pins.CreditInputBcm);
         _bank.OpenOutput(_pins.Pad1LampBcm, initialHigh: false);
     }
 
     public GameIoInput Read()
     {
+        if (!_readPadInputs)
+        {
+            return GameIoInput.None;
+        }
+
         var held = new List<FloorPad>();
         for (var number = 1; number <= FloorPad.Count; number++)
         {

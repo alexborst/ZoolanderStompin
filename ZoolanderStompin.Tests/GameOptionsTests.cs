@@ -42,6 +42,9 @@ public class GameOptionsTests
         Assert.AreEqual(22, options.Io.Gpio.Pad2InputBcm);
         Assert.AreEqual(26, options.Io.Gpio.CreditInputBcm);
         Assert.AreEqual(27, options.Io.Gpio.Pad1LampBcm);
+        Assert.IsTrue(options.Io.Joystick.Enabled);
+        Assert.AreEqual("/dev/input/js0", options.Io.Joystick.Device);
+        Assert.AreEqual(6, options.Io.Joystick.Pad1Button);
     }
 
     [TestMethod]
@@ -94,6 +97,9 @@ public class GameOptionsTests
         }
 
         Assert.AreEqual(expected.Io.Adapter, actual.Io.Adapter);
+        Assert.AreEqual(expected.Io.Joystick.Enabled, actual.Io.Joystick.Enabled);
+        Assert.AreEqual(expected.Io.Joystick.Device, actual.Io.Joystick.Device);
+        Assert.AreEqual(expected.Io.Joystick.Pad1Button, actual.Io.Joystick.Pad1Button);
         CollectionAssert.AreEqual(
             expected.Io.Gpio.MappedPins().Select(pin => pin.Bcm).ToArray(),
             actual.Io.Gpio.MappedPins().Select(pin => pin.Bcm).ToArray());

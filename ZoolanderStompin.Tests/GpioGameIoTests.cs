@@ -72,4 +72,27 @@ public class GpioGameIoTests
         Assert.IsTrue(input.CreditHeld);
         Assert.IsFalse(input.ServiceCreditHeld);
     }
+
+    [TestMethod]
+    public void Skips_switch_inputs_when_the_joystick_owns_stomps()
+    {
+        var bank = new FakeGpioBank();
+        var io = new GpioGameIo(new GpioOptions(), bank, readPadInputs: false);
+        bank.SetHigh(GpioOptions.DefaultPad1InputBcm, false);
+
+        Assert.IsFalse(io.Read().IsPadHeld(new FloorPad(1)));
+
+        io.Apply(new GameIoOutput(
+            padLampsOn: [new FloorPad(1)],
+            easyLampOn: false,
+            mediumLampOn: false,
+            hardLampOn: false,
+            pictorialLampsOn: GameIoOutput.Off.PictorialLampsOn,
+            scoreDigits: null,
+            ticketDigits: null,
+            sound: null,
+            ticketEnable: false));
+
+        Assert.IsTrue(bank.ReadHigh(GpioOptions.DefaultPad1LampBcm));
+    }
 }

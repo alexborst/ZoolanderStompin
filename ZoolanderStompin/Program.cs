@@ -8,25 +8,31 @@ var gameOptions = builder.Configuration.GetSection(GameOptions.SectionName).Get<
 gameOptions.EnsureValid();
 builder.Services.AddSingleton(gameOptions);
 builder.Services.AddSingleton<KeyboardGameIo>();
-if (gameOptions.Io.UseGpio(OperatingSystem.IsLinux()))
+
+var linux = OperatingSystem.IsLinux();
+if (gameOptions.Io.UseGpio(linux))
 {
-    if (!OperatingSystem.IsLinux())
+    if (!linux)
     {
         throw new GameConfigurationException("GPIO I/O requires Linux (Raspberry Pi). Set Game:io:adapter to Keyboard or Auto on Windows.");
     }
 
     builder.Services.AddSingleton<IGpioBank, LinuxGpioBank>();
-    builder.Services.AddSingleton<GpioGameIo>(services =>
-        new GpioGameIo(gameOptions.Io.Gpio, services.GetRequiredService<IGpioBank>()));
-    builder.Services.AddSingleton<IGameIo>(services =>
-        new CompositeGameIo(
-            services.GetRequiredService<KeyboardGameIo>(),
-            services.GetRequiredService<GpioGameIo>()));
+    builder.Services.AddSingleton(services =>
+        new GpioGameIo(
+            gameOptions.Io.Gpio,
+            services.GetRequiredService<IGpioBank>(),
+            readPadInputs: !gameOptions.Io.UseJoystick(linux)));
 }
-else
+
+if (gameOptions.Io.UseJoystick(linux))
 {
-    builder.Services.AddSingleton<IGameIo>(services => services.GetRequiredService<KeyboardGameIo>());
+    builder.Services.AddSingleton<IJoystickDevice>(_ => new LinuxJoystickDevice(gameOptions.Io.Joystick.Device));
+    builder.Services.AddSingleton(services =>
+        new JoystickGameIo(gameOptions.Io.Joystick, services.GetRequiredService<IJoystickDevice>()));
 }
+
+builder.Services.AddSingleton(services => GameIoFactory.Create(services, gameOptions));
 builder.Services.AddSingleton<IGameClock, SystemGameClock>();
 builder.Services.AddSingleton<IPadPicker, RandomPadPicker>();
 builder.Services.AddSingleton<GameSession>();

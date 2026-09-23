@@ -123,6 +123,12 @@ public sealed class GameOptions
             {
                 Adapter = IoAdapter.Auto,
                 Gpio = new GpioOptions(),
+                Joystick = new JoystickOptions
+                {
+                    Enabled = true,
+                    Device = "/dev/input/js0",
+                    Pad1Button = 6,
+                },
             },
         };
 
@@ -152,6 +158,7 @@ public sealed class GameOptions
         var errors = new List<string>();
         Io ??= new IoOptions();
         Io.Gpio ??= new GpioOptions();
+        Io.Joystick ??= new JoystickOptions();
         ValidateTiming(errors);
         ValidateDifficulty("Easy", Easy, errors);
         ValidateDifficulty("Medium", Medium, errors);
@@ -248,6 +255,16 @@ public sealed class GameOptions
             {
                 errors.Add($"{name} and {seen[bcm]} must be different pins.");
             }
+        }
+
+        if (string.IsNullOrWhiteSpace(io.Joystick.Device))
+        {
+            errors.Add("Joystick device path is required.");
+        }
+
+        if (io.Joystick.Pad1Button < 0)
+        {
+            errors.Add("Joystick Pad1Button cannot be negative.");
         }
     }
 
