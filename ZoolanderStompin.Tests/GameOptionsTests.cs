@@ -43,9 +43,21 @@ public class GameOptionsTests
         Assert.AreEqual(22, options.Io.Gpio.Pad2InputBcm);
         Assert.AreEqual(26, options.Io.Gpio.CreditInputBcm);
         Assert.AreEqual(27, options.Io.Gpio.Pad1LampBcm);
+        Assert.AreEqual(4, options.Io.Gpio.Pad2LampBcm);
+        Assert.AreEqual(18, options.Io.Gpio.Pad3LampBcm);
+        Assert.AreEqual(13, options.Io.Gpio.Pad4LampBcm);
+        Assert.AreEqual(19, options.Io.Gpio.Pad5LampBcm);
+        Assert.AreEqual(25, options.Io.Gpio.Pad6LampBcm);
+        Assert.AreEqual(8, options.Io.Gpio.Pad7LampBcm);
         Assert.IsTrue(options.Io.Joystick.Enabled);
         Assert.AreEqual("/dev/input/js0", options.Io.Joystick.Device);
-        Assert.AreEqual(6, options.Io.Joystick.Pad1Button);
+        Assert.AreEqual(1, options.Io.Joystick.Pad1Button);
+        Assert.AreEqual(2, options.Io.Joystick.Pad2Button);
+        Assert.AreEqual(3, options.Io.Joystick.Pad3Button);
+        Assert.AreEqual(4, options.Io.Joystick.Pad4Button);
+        Assert.AreEqual(5, options.Io.Joystick.Pad5Button);
+        Assert.AreEqual(6, options.Io.Joystick.Pad6Button);
+        Assert.AreEqual(7, options.Io.Joystick.Pad7Button);
     }
 
     [TestMethod]
@@ -102,6 +114,12 @@ public class GameOptionsTests
         Assert.AreEqual(expected.Io.Joystick.Enabled, actual.Io.Joystick.Enabled);
         Assert.AreEqual(expected.Io.Joystick.Device, actual.Io.Joystick.Device);
         Assert.AreEqual(expected.Io.Joystick.Pad1Button, actual.Io.Joystick.Pad1Button);
+        Assert.AreEqual(expected.Io.Joystick.Pad2Button, actual.Io.Joystick.Pad2Button);
+        Assert.AreEqual(expected.Io.Joystick.Pad3Button, actual.Io.Joystick.Pad3Button);
+        Assert.AreEqual(expected.Io.Joystick.Pad4Button, actual.Io.Joystick.Pad4Button);
+        Assert.AreEqual(expected.Io.Joystick.Pad5Button, actual.Io.Joystick.Pad5Button);
+        Assert.AreEqual(expected.Io.Joystick.Pad6Button, actual.Io.Joystick.Pad6Button);
+        Assert.AreEqual(expected.Io.Joystick.Pad7Button, actual.Io.Joystick.Pad7Button);
         CollectionAssert.AreEqual(
             expected.Io.Gpio.MappedPins().Select(pin => pin.Bcm).ToArray(),
             actual.Io.Gpio.MappedPins().Select(pin => pin.Bcm).ToArray());

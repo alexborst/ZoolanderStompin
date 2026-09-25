@@ -2,8 +2,6 @@ namespace ZoolanderStompin.Game;
 
 public sealed class JoystickGameIo : IGameIo
 {
-    private static readonly FloorPad Pad1 = new(1);
-
     private readonly JoystickOptions _options;
     private readonly IJoystickDevice _device;
 
@@ -19,9 +17,17 @@ public sealed class JoystickGameIo : IGameIo
     public GameIoInput Read()
     {
         _device.Pump();
-        var pressed = _device.IsButtonHeld(_options.Pad1Button);
+        var held = new List<FloorPad>();
+        for (var number = 1; number <= FloorPad.Count; number++)
+        {
+            if (_device.IsButtonHeld(_options.ButtonForPad(number)))
+            {
+                held.Add(new FloorPad(number));
+            }
+        }
+
         return new GameIoInput(
-            padsHeld: pressed ? [Pad1] : [],
+            padsHeld: held,
             easyHeld: false,
             mediumHeld: false,
             hardHeld: false,

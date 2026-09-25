@@ -42,6 +42,24 @@ public sealed class GpioOptions
     /// <summary>BCM 27 = header pin 13.</summary>
     public const int DefaultPad1LampBcm = 27;
 
+    /// <summary>BCM 4 = header pin 7.</summary>
+    public const int DefaultPad2LampBcm = 4;
+
+    /// <summary>BCM 18 = header pin 12.</summary>
+    public const int DefaultPad3LampBcm = 18;
+
+    /// <summary>BCM 13 = header pin 33.</summary>
+    public const int DefaultPad4LampBcm = 13;
+
+    /// <summary>BCM 19 = header pin 35.</summary>
+    public const int DefaultPad5LampBcm = 19;
+
+    /// <summary>BCM 25 = header pin 22.</summary>
+    public const int DefaultPad6LampBcm = 25;
+
+    /// <summary>BCM 8 = header pin 24.</summary>
+    public const int DefaultPad7LampBcm = 8;
+
     public int Pad1InputBcm { get; set; } = DefaultPad1InputBcm;
 
     public int Pad2InputBcm { get; set; } = DefaultPad2InputBcm;
@@ -66,6 +84,18 @@ public sealed class GpioOptions
 
     public int Pad1LampBcm { get; set; } = DefaultPad1LampBcm;
 
+    public int Pad2LampBcm { get; set; } = DefaultPad2LampBcm;
+
+    public int Pad3LampBcm { get; set; } = DefaultPad3LampBcm;
+
+    public int Pad4LampBcm { get; set; } = DefaultPad4LampBcm;
+
+    public int Pad5LampBcm { get; set; } = DefaultPad5LampBcm;
+
+    public int Pad6LampBcm { get; set; } = DefaultPad6LampBcm;
+
+    public int Pad7LampBcm { get; set; } = DefaultPad7LampBcm;
+
     public int InputBcmForPad(int padNumber) => padNumber switch
     {
         1 => Pad1InputBcm,
@@ -75,6 +105,21 @@ public sealed class GpioOptions
         5 => Pad5InputBcm,
         6 => Pad6InputBcm,
         7 => Pad7InputBcm,
+        _ => throw new ArgumentOutOfRangeException(
+            nameof(padNumber),
+            padNumber,
+            "Floor pad number must be between 1 and 7."),
+    };
+
+    public int LampBcmForPad(int padNumber) => padNumber switch
+    {
+        1 => Pad1LampBcm,
+        2 => Pad2LampBcm,
+        3 => Pad3LampBcm,
+        4 => Pad4LampBcm,
+        5 => Pad5LampBcm,
+        6 => Pad6LampBcm,
+        7 => Pad7LampBcm,
         _ => throw new ArgumentOutOfRangeException(
             nameof(padNumber),
             padNumber,
@@ -95,5 +140,11 @@ public sealed class GpioOptions
         ("HardInputBcm", HardInputBcm),
         ("CreditInputBcm", CreditInputBcm),
         ("Pad1LampBcm", Pad1LampBcm),
+        ("Pad2LampBcm", Pad2LampBcm),
+        ("Pad3LampBcm", Pad3LampBcm),
+        ("Pad4LampBcm", Pad4LampBcm),
+        ("Pad5LampBcm", Pad5LampBcm),
+        ("Pad6LampBcm", Pad6LampBcm),
+        ("Pad7LampBcm", Pad7LampBcm),
     ];
 }

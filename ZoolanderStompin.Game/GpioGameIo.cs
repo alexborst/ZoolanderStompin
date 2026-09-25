@@ -27,7 +27,10 @@ public sealed class GpioGameIo : IGameIo
             _bank.OpenInputPullUp(_pins.CreditInputBcm);
         }
 
-        _bank.OpenOutput(_pins.Pad1LampBcm, initialHigh: false);
+        for (var number = 1; number <= FloorPad.Count; number++)
+        {
+            _bank.OpenOutput(_pins.LampBcmForPad(number), initialHigh: false);
+        }
     }
 
     public GameIoInput Read()
@@ -59,7 +62,11 @@ public sealed class GpioGameIo : IGameIo
     public void Apply(GameIoOutput output)
     {
         ArgumentNullException.ThrowIfNull(output);
-        _bank.WriteHigh(_pins.Pad1LampBcm, output.IsPadLampOn(new FloorPad(1)));
+        for (var number = 1; number <= FloorPad.Count; number++)
+        {
+            var pad = new FloorPad(number);
+            _bank.WriteHigh(_pins.LampBcmForPad(number), output.IsPadLampOn(pad));
+        }
     }
 
     private bool IsPressed(int bcm) => !_bank.ReadHigh(bcm);

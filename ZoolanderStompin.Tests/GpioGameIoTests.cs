@@ -95,4 +95,32 @@ public class GpioGameIoTests
 
         Assert.IsTrue(bank.ReadHigh(GpioOptions.DefaultPad1LampBcm));
     }
+
+    [TestMethod]
+    public void Each_pad_lamp_follows_game_output()
+    {
+        var pins = new GpioOptions();
+        var bank = new FakeGpioBank();
+        var io = new GpioGameIo(pins, bank, readPadInputs: false);
+
+        io.Apply(new GameIoOutput(
+            padLampsOn: [new FloorPad(2), new FloorPad(7)],
+            easyLampOn: false,
+            mediumLampOn: false,
+            hardLampOn: false,
+            pictorialLampsOn: GameIoOutput.Off.PictorialLampsOn,
+            scoreDigits: null,
+            ticketDigits: null,
+            sound: null,
+            ticketEnable: false));
+
+        Assert.IsFalse(bank.ReadHigh(pins.LampBcmForPad(1)));
+        Assert.IsTrue(bank.ReadHigh(pins.LampBcmForPad(2)));
+        Assert.IsFalse(bank.ReadHigh(pins.LampBcmForPad(3)));
+        Assert.IsTrue(bank.ReadHigh(pins.LampBcmForPad(7)));
+
+        io.Apply(GameIoOutput.Off);
+        Assert.IsFalse(bank.ReadHigh(pins.LampBcmForPad(2)));
+        Assert.IsFalse(bank.ReadHigh(pins.LampBcmForPad(7)));
+    }
 }

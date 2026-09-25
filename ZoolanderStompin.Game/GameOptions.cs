@@ -133,7 +133,13 @@ public sealed class GameOptions
                 {
                     Enabled = true,
                     Device = "/dev/input/js0",
-                    Pad1Button = 6,
+                    Pad1Button = 1,
+                    Pad2Button = 2,
+                    Pad3Button = 3,
+                    Pad4Button = 4,
+                    Pad5Button = 5,
+                    Pad6Button = 6,
+                    Pad7Button = 7,
                 },
             },
         };
@@ -273,9 +279,21 @@ public sealed class GameOptions
             errors.Add("Joystick device path is required.");
         }
 
-        if (io.Joystick.Pad1Button < 0)
+        var buttons = new Dictionary<int, string>();
+        for (var number = 1; number <= FloorPad.Count; number++)
         {
-            errors.Add("Joystick Pad1Button cannot be negative.");
+            var name = $"Pad{number}Button";
+            var button = io.Joystick.ButtonForPad(number);
+            if (button < 0)
+            {
+                errors.Add($"Joystick {name} cannot be negative.");
+                continue;
+            }
+
+            if (!buttons.TryAdd(button, name))
+            {
+                errors.Add($"Joystick {name} and {buttons[button]} must be different buttons.");
+            }
         }
     }
 
