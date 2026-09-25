@@ -187,6 +187,7 @@ public sealed class GameSessionDriver
         options.Easy.HitWindowMilliseconds = 100;
         options.Medium.HitWindowMilliseconds = 100;
         options.Hard.HitWindowMilliseconds = 100;
+        options.FixedDifficulty = null;
         return options;
     }
 

@@ -98,7 +98,9 @@
                        FontFamily="Cascadia Mono, Consolas, monospace" />
 
             <Grid Grid.Row="5" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
-                <TextBlock Text="{Binding Difficulty}" FontSize="32" />
+                <TextBlock Text="{Binding Difficulty}"
+                           FontSize="32"
+                           IsVisible="{Binding ShowDifficulty}" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
                     <TextBlock Classes="label" Text="PICS" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding Pictorial}"

@@ -325,6 +325,7 @@ public class DefinitionOfDoneTests
         options.Easy.HitWindowMilliseconds = 80;
         options.Medium.HitWindowMilliseconds = 80;
         options.Hard.HitWindowMilliseconds = 80;
+        options.FixedDifficulty = null;
         var driver = new GameSessionDriver(new RandomPadPicker(new Random(42)), options);
         driver.Tick();
         driver.PulseCredit();

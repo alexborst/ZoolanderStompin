@@ -17,6 +17,7 @@ public sealed record PlaySnapshot
         Pads = "",
         Difficulty = "",
         Pictorial = "",
+        KeyLegend = PlayStatus.CreditOnlyKeyLegend,
     };
 
     public required string Title { get; init; }
@@ -44,6 +45,8 @@ public sealed record PlaySnapshot
     public required string Difficulty { get; init; }
 
     public required string Pictorial { get; init; }
+
+    public required string KeyLegend { get; init; }
 
     public static PlaySnapshot Capture(GameSession session)
     {
@@ -80,14 +83,17 @@ public sealed record PlaySnapshot
             Tickets = output.TicketDigits?.ToString("00") ?? "--",
             Prompt = FormatPrompt(session),
             Pads = pads,
-            Difficulty =
-                $"{Lamp("Easy", output.EasyLampOn)} {Lamp("Medium", output.MediumLampOn)} {Lamp("Hard", output.HardLampOn)}",
+            Difficulty = session.FixedDifficulty is null
+                ? $"{Lamp("Easy", output.EasyLampOn)} {Lamp("Medium", output.MediumLampOn)} {Lamp("Hard", output.HardLampOn)}"
+                : "",
             Pictorial = string.Join(" ", output.PictorialLampsOn.Select(on => on ? "*" : ".")),
+            KeyLegend = session.FixedDifficulty is null ? PlayStatus.KeyLegend : PlayStatus.CreditOnlyKeyLegend,
         };
     }
 
     internal static string FormatPrompt(GameSession session) => session.Phase switch
     {
+        SessionPhase.Attract when session.FixedDifficulty is not null => "Insert a credit (C) to start.",
         SessionPhase.Attract => "Insert a credit (C), then pick Easy, Medium, or Hard.",
         SessionPhase.Select => "Pick Easy, Medium, or Hard.",
         SessionPhase.Countdown => "Get ready — stomps do not score yet.",

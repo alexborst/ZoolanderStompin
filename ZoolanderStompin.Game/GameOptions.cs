@@ -49,6 +49,11 @@ public sealed class GameOptions
 
     public int CoinsPerCredit { get; set; }
 
+    /// <summary>
+    /// When set, a credit starts this difficulty immediately. Null keeps Easy/Medium/Hard select.
+    /// </summary>
+    public Difficulty? FixedDifficulty { get; set; }
+
     public DifficultyOptions Easy { get; set; } = new();
 
     public DifficultyOptions Medium { get; set; } = new();
@@ -90,6 +95,7 @@ public sealed class GameOptions
             AttractLampCycleMilliseconds = 400,
             FreePlay = false,
             CoinsPerCredit = 1,
+            FixedDifficulty = Difficulty.Hard,
             Easy = new DifficultyOptions
             {
                 PadsInPlay = [1, 2, 3, 4],
@@ -237,6 +243,11 @@ public sealed class GameOptions
         if (CoinsPerCredit < 1)
         {
             errors.Add("CoinsPerCredit must be at least 1.");
+        }
+
+        if (FixedDifficulty is { } locked && !Enum.IsDefined(locked))
+        {
+            errors.Add("FixedDifficulty is not a recognized value.");
         }
     }
 

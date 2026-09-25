@@ -32,6 +32,7 @@ public class GameOptionsTests
         Assert.AreEqual(400, options.AttractLampCycleMilliseconds);
         Assert.IsFalse(options.FreePlay);
         Assert.AreEqual(1, options.CoinsPerCredit);
+        Assert.AreEqual(Difficulty.Hard, options.FixedDifficulty);
         Assert.AreEqual(30, options.DebounceMilliseconds);
         Assert.AreEqual(PayoutMode.PercentageTable, options.Payout.Mode);
         Assert.AreEqual(0, options.Payout.TicketsForHitPercent(0));
@@ -80,6 +81,7 @@ public class GameOptionsTests
         Assert.AreEqual(expected.AttractLampCycleMilliseconds, actual.AttractLampCycleMilliseconds);
         Assert.AreEqual(expected.FreePlay, actual.FreePlay);
         Assert.AreEqual(expected.CoinsPerCredit, actual.CoinsPerCredit);
+        Assert.AreEqual(expected.FixedDifficulty, actual.FixedDifficulty);
         CollectionAssert.AreEqual(expected.Easy.PadsInPlay, actual.Easy.PadsInPlay);
         Assert.AreEqual(expected.Easy.HitWindowMilliseconds, actual.Easy.HitWindowMilliseconds);
         CollectionAssert.AreEqual(expected.Medium.PadsInPlay, actual.Medium.PadsInPlay);

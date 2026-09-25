@@ -39,9 +39,11 @@ public sealed class ScoreboardViewModel : INotifyPropertyChanged
 
     public string Difficulty => _shown.Difficulty;
 
+    public bool ShowDifficulty => _shown.Difficulty.Length > 0;
+
     public string Pictorial => _shown.Pictorial;
 
-    public string KeyLegend => PlayStatus.KeyLegend;
+    public string KeyLegend => _shown.KeyLegend;
 
     public void Apply(PlaySnapshot snapshot)
     {

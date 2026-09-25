@@ -22,6 +22,9 @@ public class PlaySnapshotTests
         Assert.AreEqual("--%", snap.Percent);
         Assert.AreEqual("--", snap.Tickets);
         StringAssert.Contains(snap.Prompt, "Insert a credit");
+        StringAssert.Contains(snap.Prompt, "pick Easy, Medium, or Hard");
+        StringAssert.Contains(snap.Difficulty, "Easy");
+        Assert.AreEqual(PlayStatus.KeyLegend, snap.KeyLegend);
     }
 
     [TestMethod]

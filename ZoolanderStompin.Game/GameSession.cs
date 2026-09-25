@@ -38,6 +38,8 @@ public sealed class GameSession
 
     public Difficulty? SelectedDifficulty { get; private set; }
 
+    public Difficulty? FixedDifficulty => _options.FixedDifficulty;
+
     public int CurrentRound { get; private set; }
 
     public GameSound? Sound { get; private set; }
@@ -160,7 +162,12 @@ public sealed class GameSession
 
         if (Credits > 0)
         {
-            EnterSelect();
+            BeginPaidGame();
+            return;
+        }
+
+        if (_options.FixedDifficulty is not null)
+        {
             return;
         }
 
@@ -272,7 +279,7 @@ public sealed class GameSession
 
         if (Credits > 0)
         {
-            EnterSelect();
+            BeginPaidGame();
             return;
         }
 
@@ -309,6 +316,17 @@ public sealed class GameSession
     {
         Credits++;
         Cue(GameSound.Coin);
+    }
+
+    private void BeginPaidGame()
+    {
+        if (_options.FixedDifficulty is { } locked)
+        {
+            EnterCountdown(locked, consumeCredit: true);
+            return;
+        }
+
+        EnterSelect();
     }
 
     private void EnterSelect()
