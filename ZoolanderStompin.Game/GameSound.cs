@@ -5,6 +5,7 @@ public enum GameSound
     NewLight,
     Hit,
     Miss,
+    GameStart,
     Countdown,
     Round,
     GameEnd,

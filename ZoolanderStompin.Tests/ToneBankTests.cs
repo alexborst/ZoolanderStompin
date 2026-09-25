@@ -16,6 +16,7 @@ public class ToneBankTests
         CollectionAssert.AreEqual("RIFF"u8.ToArray(), hit.Take(4).ToArray());
         CollectionAssert.AreNotEqual(hit, miss);
         CollectionAssert.AreNotEqual(miss, end);
+        CollectionAssert.AreNotEqual(ToneBank.ToWav(GameSound.GameStart), ToneBank.ToWav(GameSound.Countdown));
     }
 
     [TestMethod]

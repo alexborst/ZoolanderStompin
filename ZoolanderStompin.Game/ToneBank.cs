@@ -10,10 +10,11 @@ public static class ToneBank
         {
             GameSound.NewLight => Concat(Sine(880, 70)),
             GameSound.Hit => Concat(Sine(523, 80), Sine(784, 100)),
-            GameSound.Miss => Concat(Sine(185, 180)),
+            GameSound.Miss => Concat(Sine(494, 90), Sine(392, 140)),
+            GameSound.GameStart => Concat(Sine(523, 120), Sine(659, 120), Sine(784, 180)),
             GameSound.Countdown => Concat(Sine(440, 140)),
             GameSound.Round => Concat(Sine(349, 220)),
-            GameSound.GameEnd => Concat(Sine(330, 140), Sine(262, 140), Sine(196, 220)),
+            GameSound.GameEnd => Concat(Sine(523, 140), Sine(392, 160), Sine(262, 280)),
             GameSound.Coin => Concat(Sine(1319, 70), Sine(1568, 90)),
             GameSound.Ticket => Concat(Sine(2000, 40), Silence(30), Sine(2000, 40), Silence(30), Sine(2000, 40)),
             _ => Concat(Sine(440, 100)),

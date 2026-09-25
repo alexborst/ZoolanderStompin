@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Media;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Hosting;
@@ -9,7 +10,8 @@ namespace ZoolanderStompin;
 public sealed class WindowsGameAudio : IGameAudio
 {
     private readonly string _soundsDirectory;
-    private readonly List<object> _keepAlive = [];
+    private readonly ConcurrentQueue<byte[]> _pending = new();
+    private int _playing;
 
     public WindowsGameAudio(IHostEnvironment environment)
     {
@@ -25,19 +27,38 @@ public sealed class WindowsGameAudio : IGameAudio
 
         try
         {
-            var wav = LoadWav(sound.Value);
-            var stream = new MemoryStream(wav, writable: false);
-            var player = new SoundPlayer(stream);
-            player.Play();
-            _keepAlive.Add(stream);
-            _keepAlive.Add(player);
-            if (_keepAlive.Count > 24)
+            _pending.Enqueue(LoadWav(sound.Value));
+            if (Interlocked.CompareExchange(ref _playing, 1, 0) == 0)
             {
-                _keepAlive.RemoveRange(0, 8);
+                ThreadPool.QueueUserWorkItem(_ => Drain());
             }
         }
         catch
         {
+        }
+    }
+
+    private void Drain()
+    {
+        try
+        {
+            while (_pending.TryDequeue(out var wav))
+            {
+                using var stream = new MemoryStream(wav, writable: false);
+                using var player = new SoundPlayer(stream);
+                player.PlaySync();
+            }
+        }
+        catch
+        {
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _playing, 0);
+            if (!_pending.IsEmpty && Interlocked.CompareExchange(ref _playing, 1, 0) == 0)
+            {
+                ThreadPool.QueueUserWorkItem(_ => Drain());
+            }
         }
     }
 

@@ -368,7 +368,7 @@ public sealed class GameSession
         _loop = null;
         _countdownIsGetReady = true;
         _phaseDeadline = new TimedDeadline(_clock, GetReady);
-        Cue(GameSound.Countdown);
+        Cue(GameSound.GameStart);
     }
 
     private void EnterPlaying()
@@ -399,7 +399,11 @@ public sealed class GameSession
         Result = result;
         _loop = null;
         _phaseDeadline = new TimedDeadline(_clock, ResultsHold);
-        Cue(result.Tickets > 0 ? GameSound.Ticket : GameSound.GameEnd);
+        Cue(GameSound.GameEnd);
+        if (result.Tickets > 0)
+        {
+            Cue(GameSound.Ticket);
+        }
     }
 
     private void EnterAttract()
