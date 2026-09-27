@@ -59,6 +59,7 @@ public class GameSessionAudioTests
         win.PulseCredit();
         win.PulseDifficulty(Difficulty.Easy);
         win.PlayUntilResults(hitEveryPresentation: true);
+        win.AwaitGameEnd();
 
         CollectionAssert.Contains(win.Session.DrainCues().ToList(), GameSound.GameEnd);
 
@@ -67,7 +68,19 @@ public class GameSessionAudioTests
         lose.PulseCredit();
         lose.PulseDifficulty(Difficulty.Easy);
         lose.PlayUntilResults(hitEveryPresentation: false);
+        lose.AwaitGameEnd();
 
         CollectionAssert.Contains(lose.Session.DrainCues().ToList(), GameSound.GameEnd);
+    }
+
+    [TestMethod]
+    public void Attract_queues_a_call_in_and_repeats_after_the_interval()
+    {
+        var driver = GameSessionDriver.Scripted(pads: [1]);
+        driver.Tick();
+        CollectionAssert.Contains(driver.Session.DrainCues().ToList(), GameSound.Attract);
+
+        driver.AdvanceAndTick(TimeSpan.FromMilliseconds(driver.Options.AttractSoundMilliseconds));
+        CollectionAssert.Contains(driver.Session.DrainCues().ToList(), GameSound.Attract);
     }
 }

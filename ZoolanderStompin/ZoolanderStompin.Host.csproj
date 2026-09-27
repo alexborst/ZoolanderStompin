@@ -35,5 +35,13 @@
 
   <ItemGroup>
     <Content Include="Sounds\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <SoundFile Include="Sounds\**\*" />
   </ItemGroup>
+
+  <!-- Output Sounds must mirror the source folder: PreserveNewest never deletes clips removed from source. -->
+  <Target Name="MirrorSounds" AfterTargets="CopyFilesToOutputDirectory">
+    <RemoveDir Directories="$(OutDir)Sounds" />
+    <Copy SourceFiles="@(SoundFile)" DestinationFiles="@(SoundFile->'$(OutDir)Sounds\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
 </Project>

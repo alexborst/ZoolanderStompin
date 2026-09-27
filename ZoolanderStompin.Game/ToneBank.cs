@@ -17,6 +17,11 @@ public static class ToneBank
             GameSound.GameEnd => Concat(Sine(523, 140), Sine(392, 160), Sine(262, 280)),
             GameSound.Coin => Concat(Sine(1319, 70), Sine(1568, 90)),
             GameSound.Ticket => Concat(Sine(2000, 40), Silence(30), Sine(2000, 40), Silence(30), Sine(2000, 40)),
+            GameSound.Attract => Concat(Sine(262, 180), Silence(80), Sine(330, 220)),
+            GameSound.RoundEndBad => Concat(Sine(330, 160), Sine(294, 160), Sine(262, 240)),
+            GameSound.RoundEndMedium => Concat(Sine(392, 160), Sine(440, 200)),
+            GameSound.RoundEndGood => Concat(Sine(523, 120), Sine(659, 120), Sine(784, 200)),
+            GameSound.RoundEndPerfect => Concat(Sine(659, 100), Sine(784, 100), Sine(988, 100), Sine(1319, 260)),
             _ => Concat(Sine(440, 100)),
         };
 

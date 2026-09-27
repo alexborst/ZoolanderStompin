@@ -21,6 +21,8 @@ public class GameSessionPayoutTests
         Assert.AreEqual(0, driver.Session.Result?.Tickets);
         Assert.AreEqual(0, driver.Output.TicketDigits);
         Assert.IsFalse(driver.Output.TicketEnable);
+
+        driver.AwaitGameEnd();
         Assert.AreEqual(GameSound.GameEnd, driver.Output.Sound);
     }
 
@@ -40,6 +42,8 @@ public class GameSessionPayoutTests
         Assert.AreEqual(8, driver.Session.Result?.Tickets);
         Assert.AreEqual(8, driver.Output.TicketDigits);
         Assert.IsTrue(driver.Output.TicketEnable);
+
+        driver.AwaitGameEnd();
         Assert.AreEqual(GameSound.Ticket, driver.Output.Sound);
     }
 

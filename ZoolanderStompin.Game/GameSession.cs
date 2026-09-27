@@ -5,17 +5,20 @@ public sealed class GameSession
     private readonly GameOptions _options;
     private readonly IGameClock _clock;
     private readonly IPadPicker _picker;
+    private readonly SoundLibrary? _sounds;
     private readonly ButtonEdges _buttons = new();
     private readonly List<GameSound> _cues = [];
     private TargetLoop? _loop;
     private TimedDeadline? _phaseDeadline;
+    private TimedDeadline _attractSoundDeadline;
     private Score _score;
     private FloorPad? _previousPad;
     private FloorPad _attractPad = new(1);
     private int _coinsTowardCredit;
-    private bool _countdownIsGetReady;
+    private int _roundStartHits;
+    private bool _resultsAwaitingGameEnd;
 
-    public GameSession(GameOptions options, IGameClock clock, IPadPicker picker)
+    public GameSession(GameOptions options, IGameClock clock, IPadPicker picker, SoundLibrary? sounds = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(clock);
@@ -24,8 +27,10 @@ public sealed class GameSession
         _options = options;
         _clock = clock;
         _picker = picker;
+        _sounds = sounds;
         Phase = SessionPhase.Attract;
         _phaseDeadline = new TimedDeadline(clock, AttractCycle);
+        _attractSoundDeadline = new TimedDeadline(clock, TimeSpan.Zero);
     }
 
     public SessionPhase Phase { get; private set; }
@@ -133,15 +138,39 @@ public sealed class GameSession
 
     private TimeSpan AttractCycle => TimeSpan.FromMilliseconds(_options.AttractLampCycleMilliseconds);
 
+    private TimeSpan AttractSound => TimeSpan.FromMilliseconds(_options.AttractSoundMilliseconds);
+
+    private void CueAttractIfDue()
+    {
+        if (!_attractSoundDeadline.IsExpired)
+        {
+            return;
+        }
+
+        Cue(GameSound.Attract);
+        _attractSoundDeadline = new TimedDeadline(_clock, AttractSound);
+    }
+
     private TimeSpan SelectTimeout => TimeSpan.FromSeconds(_options.SelectTimeoutSeconds);
 
-    private TimeSpan GetReady => TimeSpan.FromMilliseconds(_options.CountdownGetReadyMilliseconds);
+    private TimeSpan GameStartHold
+    {
+        get
+        {
+            var hold = ClipHold(GameSound.GameStart);
+            return hold > TimeSpan.Zero ? hold : TimeSpan.FromTicks(1);
+        }
+    }
 
-    private TimeSpan Go => TimeSpan.FromMilliseconds(_options.CountdownGoMilliseconds);
+    private TimeSpan ClipHold(GameSound sound) =>
+        _sounds?.HoldDuration(sound, TimeSpan.FromMilliseconds(_options.SoundHoldFallbackMilliseconds))
+        ?? TimeSpan.Zero;
 
     private TimeSpan Intermission => TimeSpan.FromMilliseconds(_options.IntermissionMilliseconds);
 
     private TimeSpan ResultsHold => TimeSpan.FromMilliseconds(_options.ResultsMilliseconds);
+
+    private TimeSpan GameEndDelay => TimeSpan.FromMilliseconds(_options.GameEndDelayMilliseconds);
 
     private void BankIncomingCredits()
     {
@@ -166,15 +195,13 @@ public sealed class GameSession
             return;
         }
 
-        if (_options.FixedDifficulty is not null)
+        if (_options.FixedDifficulty is null && _options.FreePlay && _buttons.DifficultyPress is { } difficulty)
         {
+            EnterCountdown(difficulty, consumeCredit: false);
             return;
         }
 
-        if (_options.FreePlay && _buttons.DifficultyPress is { } difficulty)
-        {
-            EnterCountdown(difficulty, consumeCredit: false);
-        }
+        CueAttractIfDue();
     }
 
     private void HandleSelect()
@@ -214,20 +241,10 @@ public sealed class GameSession
     private void HandleCountdown(GameIoInput input)
     {
         _ = input;
-        if (_phaseDeadline is not { IsExpired: true })
+        if (_phaseDeadline is { IsExpired: true })
         {
-            return;
+            EnterPlaying();
         }
-
-        if (_countdownIsGetReady)
-        {
-            _countdownIsGetReady = false;
-            _phaseDeadline = new TimedDeadline(_clock, Go);
-            Cue(GameSound.Countdown);
-            return;
-        }
-
-        EnterPlaying();
     }
 
     private void HandlePlaying(GameIoInput input)
@@ -252,13 +269,14 @@ public sealed class GameSession
 
         _score = _loop.Score;
         _previousPad = _loop.LastPresentedPad;
+        var roundEnd = RoundRating.Sound(RoundRating.Rate(_score.Hits - _roundStartHits, _options));
         if (CurrentRound < _options.RoundCount)
         {
-            EnterIntermission();
+            EnterIntermission(roundEnd);
             return;
         }
 
-        EnterResults();
+        EnterResults(roundEnd);
     }
 
     private void HandleIntermission()
@@ -274,6 +292,14 @@ public sealed class GameSession
     {
         if (_phaseDeadline is not { IsExpired: true })
         {
+            return;
+        }
+
+        if (_resultsAwaitingGameEnd)
+        {
+            _resultsAwaitingGameEnd = false;
+            CueGameEnd();
+            _phaseDeadline = new TimedDeadline(_clock, ResultsHold);
             return;
         }
 
@@ -366,8 +392,7 @@ public sealed class GameSession
         _previousPad = null;
         Result = null;
         _loop = null;
-        _countdownIsGetReady = true;
-        _phaseDeadline = new TimedDeadline(_clock, GetReady);
+        _phaseDeadline = new TimedDeadline(_clock, GameStartHold);
         Cue(GameSound.GameStart);
     }
 
@@ -379,28 +404,44 @@ public sealed class GameSession
         }
 
         Phase = SessionPhase.Playing;
+        _roundStartHits = _score.Hits;
         _loop = new TargetLoop(_options, difficulty, _clock, _picker, _score, _previousPad);
         _phaseDeadline = null;
         Cue(GameSound.Round);
     }
 
-    private void EnterIntermission()
+    private void EnterIntermission(GameSound roundEnd)
     {
         Phase = SessionPhase.Intermission;
         _loop = null;
-        _phaseDeadline = new TimedDeadline(_clock, Intermission);
-        Cue(GameSound.Round);
+        var hold = ClipHold(roundEnd);
+        _phaseDeadline = new TimedDeadline(_clock, hold > Intermission ? hold : Intermission);
+        Cue(roundEnd);
     }
 
-    private void EnterResults()
+    private void EnterResults(GameSound roundEnd)
     {
         Phase = SessionPhase.Results;
-        var result = GameResult.Evaluate(_score, _options);
-        Result = result;
+        Result = GameResult.Evaluate(_score, _options);
         _loop = null;
+        Cue(roundEnd);
+        var hold = ClipHold(roundEnd) + GameEndDelay;
+        if (hold > TimeSpan.Zero)
+        {
+            _resultsAwaitingGameEnd = true;
+            _phaseDeadline = new TimedDeadline(_clock, hold);
+            return;
+        }
+
+        _resultsAwaitingGameEnd = false;
+        CueGameEnd();
         _phaseDeadline = new TimedDeadline(_clock, ResultsHold);
+    }
+
+    private void CueGameEnd()
+    {
         Cue(GameSound.GameEnd);
-        if (result.Tickets > 0)
+        if (Result is { Tickets: > 0 })
         {
             Cue(GameSound.Ticket);
         }
@@ -416,6 +457,7 @@ public sealed class GameSession
         _loop = null;
         _attractPad = new FloorPad(1);
         _phaseDeadline = new TimedDeadline(_clock, AttractCycle);
+        _attractSoundDeadline = new TimedDeadline(_clock, TimeSpan.Zero);
         Sound = null;
     }
 

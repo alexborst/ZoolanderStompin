@@ -4,12 +4,12 @@ namespace ZoolanderStompin.Tests;
 
 public sealed class GameSessionDriver
 {
-    public GameSessionDriver(IPadPicker picker, GameOptions? options = null)
+    public GameSessionDriver(IPadPicker picker, GameOptions? options = null, SoundLibrary? sounds = null)
     {
         Options = options ?? CreateShortSession();
         Clock = new FakeGameClock();
         Picker = picker;
-        Session = new GameSession(Options, Clock, picker);
+        Session = new GameSession(Options, Clock, picker, sounds);
         Input = GameIoInput.None;
     }
 
@@ -41,6 +41,8 @@ public sealed class GameSessionDriver
     public TimeSpan Intermission => TimeSpan.FromMilliseconds(Options.IntermissionMilliseconds);
 
     public TimeSpan ResultsHold => TimeSpan.FromMilliseconds(Options.ResultsMilliseconds);
+
+    public TimeSpan GameEndDelay => TimeSpan.FromMilliseconds(Options.GameEndDelayMilliseconds);
 
     public TimeSpan AttractCycle => TimeSpan.FromMilliseconds(Options.AttractLampCycleMilliseconds);
 
@@ -96,13 +98,45 @@ public sealed class GameSessionDriver
 
     public void SkipToPlayingUnlit()
     {
+        if (Session.Phase == SessionPhase.Playing)
+        {
+            return;
+        }
+
         if (Session.Phase != SessionPhase.Countdown)
         {
             throw new InvalidOperationException($"Expected Countdown, was {Session.Phase}.");
         }
 
-        AdvanceAndTick(GetReady);
-        AdvanceAndTick(Go);
+        var steps = 0;
+        while (Session.Phase == SessionPhase.Countdown && steps++ < 8)
+        {
+            AdvanceAndTick(TimeSpan.FromMinutes(1));
+        }
+
+        if (Session.Phase == SessionPhase.Countdown)
+        {
+            throw new InvalidOperationException("Countdown did not finish.");
+        }
+    }
+
+    /// <summary>
+    /// Sessions without a sound library hold results only for the game-end delay before cueing GameEnd.
+    /// </summary>
+    public void AwaitGameEnd()
+    {
+        if (Session.Phase != SessionPhase.Results)
+        {
+            throw new InvalidOperationException($"Expected Results, was {Session.Phase}.");
+        }
+
+        AdvanceAndTick(GameEndDelay);
+    }
+
+    public void FinishResults()
+    {
+        AwaitGameEnd();
+        AdvanceAndTick(ResultsHold);
     }
 
     public void MissCurrent()
@@ -175,6 +209,8 @@ public sealed class GameSessionDriver
     {
         var options = GameOptions.CreateDefault();
         options.PresentationsPerRound = 2;
+        options.RoundEndMediumMinimumHits = 1;
+        options.RoundEndGoodMinimumHits = 2;
         options.RoundCount = 2;
         options.DebounceMilliseconds = 30;
         options.InterTargetGapMilliseconds = 50;
@@ -183,7 +219,9 @@ public sealed class GameSessionDriver
         options.CountdownGoMilliseconds = 40;
         options.IntermissionMilliseconds = 60;
         options.ResultsMilliseconds = 70;
+        options.GameEndDelayMilliseconds = 60;
         options.AttractLampCycleMilliseconds = 40;
+        options.AttractSoundMilliseconds = 80;
         options.Easy.HitWindowMilliseconds = 100;
         options.Medium.HitWindowMilliseconds = 100;
         options.Hard.HitWindowMilliseconds = 100;

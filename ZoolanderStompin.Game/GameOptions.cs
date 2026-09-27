@@ -45,6 +45,34 @@ public sealed class GameOptions
 
     public int AttractLampCycleMilliseconds { get; set; }
 
+    public int AttractSoundMilliseconds { get; set; } = 8000;
+
+    /// <summary>
+    /// ALSA PCM for aplay on Linux. Prefer a card name (plughw:CARD=Headphones,DEV=0) over a
+    /// numeric index, which can move when USB audio is plugged in. Empty uses the system default.
+    /// </summary>
+    public string? AudioDevice { get; set; }
+
+    /// <summary>
+    /// Hold used for game-start and round-end cues when a WAV exists but its duration cannot be read.
+    /// </summary>
+    public int SoundHoldFallbackMilliseconds { get; set; } = 40000;
+
+    /// <summary>
+    /// Pause after the final round-end clip finishes before the game-end sound plays.
+    /// </summary>
+    public int GameEndDelayMilliseconds { get; set; } = 1500;
+
+    /// <summary>
+    /// Round hits at or above this count rate Medium (below is Bad).
+    /// </summary>
+    public int RoundEndMediumMinimumHits { get; set; } = 5;
+
+    /// <summary>
+    /// Round hits at or above this count rate Good. Hitting every presentation rates Perfect.
+    /// </summary>
+    public int RoundEndGoodMinimumHits { get; set; } = 16;
+
     public bool FreePlay { get; set; }
 
     public int CoinsPerCredit { get; set; }
@@ -84,7 +112,7 @@ public sealed class GameOptions
             PresentationsPerRound = 20,
             RoundCount = 2,
             PreventConsecutiveRepeat = true,
-            InterTargetGapMilliseconds = 250,
+            InterTargetGapMilliseconds = 400,
             WinPercentThreshold = 60,
             SelectTimeoutSeconds = 30,
             SelectTimeoutAction = SelectTimeoutAction.AutoStartEasy,
@@ -93,6 +121,12 @@ public sealed class GameOptions
             IntermissionMilliseconds = 2000,
             ResultsMilliseconds = 3000,
             AttractLampCycleMilliseconds = 400,
+            AttractSoundMilliseconds = 8000,
+            AudioDevice = "plughw:CARD=Headphones,DEV=0",
+            SoundHoldFallbackMilliseconds = 40000,
+            GameEndDelayMilliseconds = 1000,
+            RoundEndMediumMinimumHits = 5,
+            RoundEndGoodMinimumHits = 16,
             FreePlay = false,
             CoinsPerCredit = 1,
             FixedDifficulty = Difficulty.Hard,
@@ -244,6 +278,31 @@ public sealed class GameOptions
         if (AttractLampCycleMilliseconds <= 0)
         {
             errors.Add("AttractLampCycleMilliseconds must be greater than 0.");
+        }
+
+        if (AttractSoundMilliseconds <= 0)
+        {
+            errors.Add("AttractSoundMilliseconds must be greater than 0.");
+        }
+
+        if (SoundHoldFallbackMilliseconds <= 0)
+        {
+            errors.Add("SoundHoldFallbackMilliseconds must be greater than 0.");
+        }
+
+        if (GameEndDelayMilliseconds < 0)
+        {
+            errors.Add("GameEndDelayMilliseconds cannot be negative.");
+        }
+
+        if (RoundEndMediumMinimumHits < 1)
+        {
+            errors.Add("RoundEndMediumMinimumHits must be at least 1.");
+        }
+
+        if (RoundEndGoodMinimumHits < RoundEndMediumMinimumHits)
+        {
+            errors.Add("RoundEndGoodMinimumHits cannot be lower than RoundEndMediumMinimumHits.");
         }
 
         if (CoinsPerCredit < 1)

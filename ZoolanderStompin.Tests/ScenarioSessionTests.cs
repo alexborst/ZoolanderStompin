@@ -48,7 +48,7 @@ public class ScenarioSessionTests
 
         driver.PulseDifficulty(Difficulty.Easy);
         driver.PlayUntilResults(hitEveryPresentation: false);
-        driver.AdvanceAndTick(driver.ResultsHold);
+        driver.FinishResults();
 
         Assert.AreEqual(SessionPhase.Select, driver.Session.Phase);
         Assert.AreEqual(1, driver.Session.Credits);

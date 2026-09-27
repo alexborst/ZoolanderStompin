@@ -76,7 +76,7 @@ public class ScenarioRoundPayoutTests
         Assert.AreEqual(8, earned);
         Assert.IsTrue(driver.Output.TicketEnable);
 
-        driver.AdvanceAndTick(driver.ResultsHold);
+        driver.FinishResults();
 
         Assert.AreNotEqual(SessionPhase.Results, driver.Session.Phase);
         Assert.AreEqual(8, earned);

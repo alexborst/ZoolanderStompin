@@ -3,7 +3,11 @@ using Avalonia.Controls;
 using ZoolanderStompin;
 using ZoolanderStompin.Game;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory,
+});
 
 var gameOptions = builder.Configuration.GetSection(GameOptions.SectionName).Get<GameOptions>()
     ?? throw new GameConfigurationException($"Configuration section '{GameOptions.SectionName}' is missing.");
@@ -38,6 +42,8 @@ if (gameOptions.Io.UseJoystick(linux))
 builder.Services.AddSingleton(services => GameIoFactory.Create(services, gameOptions));
 builder.Services.AddSingleton<IGameClock, SystemGameClock>();
 builder.Services.AddSingleton<IPadPicker, RandomPadPicker>();
+builder.Services.AddSingleton(services => new SoundLibrary(
+    Path.Combine(services.GetRequiredService<IHostEnvironment>().ContentRootPath, SoundFolders.RootName)));
 builder.Services.AddSingleton<GameSession>();
 builder.Services.AddSingleton<ScoreboardViewModel>();
 builder.Services.AddSingleton<ConsolePlayHud>();
@@ -46,14 +52,17 @@ builder.Services.AddSingleton<IPlayHud>(services => new CompositePlayHud(
     services.GetRequiredService<AvaloniaPlayHud>(),
     services.GetRequiredService<ConsolePlayHud>()));
 builder.Services.AddSingleton<ScoreboardWindow>();
-#if LINUX_HOST
-builder.Services.AddSingleton<IGameAudio, SilentGameAudio>();
-#else
 builder.Services.AddSingleton<IGameAudio>(services =>
-    OperatingSystem.IsWindows()
-        ? new WindowsGameAudio(services.GetRequiredService<IHostEnvironment>())
-        : new SilentGameAudio());
+{
+    var library = services.GetRequiredService<SoundLibrary>();
+#if LINUX_HOST
+    return new LinuxAlsaAudio(library, gameOptions.AudioDevice);
+#else
+    return OperatingSystem.IsWindows()
+        ? new WindowsGameAudio(library)
+        : new LinuxAlsaAudio(library, gameOptions.AudioDevice);
 #endif
+});
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

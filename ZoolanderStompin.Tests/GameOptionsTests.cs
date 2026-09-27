@@ -21,7 +21,7 @@ public class GameOptionsTests
         Assert.AreEqual(2, options.RoundCount);
         Assert.AreEqual(40, options.SessionPresentations);
         Assert.IsTrue(options.PreventConsecutiveRepeat);
-        Assert.AreEqual(250, options.InterTargetGapMilliseconds);
+        Assert.AreEqual(400, options.InterTargetGapMilliseconds);
         Assert.AreEqual(60, options.WinPercentThreshold);
         Assert.AreEqual(30, options.SelectTimeoutSeconds);
         Assert.AreEqual(SelectTimeoutAction.AutoStartEasy, options.SelectTimeoutAction);
@@ -30,6 +30,12 @@ public class GameOptionsTests
         Assert.AreEqual(2000, options.IntermissionMilliseconds);
         Assert.AreEqual(3000, options.ResultsMilliseconds);
         Assert.AreEqual(400, options.AttractLampCycleMilliseconds);
+        Assert.AreEqual(8000, options.AttractSoundMilliseconds);
+        Assert.AreEqual("plughw:CARD=Headphones,DEV=0", options.AudioDevice);
+        Assert.AreEqual(40000, options.SoundHoldFallbackMilliseconds);
+        Assert.AreEqual(5, options.RoundEndMediumMinimumHits);
+        Assert.AreEqual(16, options.RoundEndGoodMinimumHits);
+        Assert.AreEqual(1500, options.GameEndDelayMilliseconds);
         Assert.IsFalse(options.FreePlay);
         Assert.AreEqual(1, options.CoinsPerCredit);
         Assert.AreEqual(Difficulty.Hard, options.FixedDifficulty);
@@ -91,6 +97,12 @@ public class GameOptionsTests
         Assert.AreEqual(expected.IntermissionMilliseconds, actual.IntermissionMilliseconds);
         Assert.AreEqual(expected.ResultsMilliseconds, actual.ResultsMilliseconds);
         Assert.AreEqual(expected.AttractLampCycleMilliseconds, actual.AttractLampCycleMilliseconds);
+        Assert.AreEqual(expected.AttractSoundMilliseconds, actual.AttractSoundMilliseconds);
+        Assert.AreEqual(expected.AudioDevice, actual.AudioDevice);
+        Assert.AreEqual(expected.SoundHoldFallbackMilliseconds, actual.SoundHoldFallbackMilliseconds);
+        Assert.AreEqual(expected.RoundEndMediumMinimumHits, actual.RoundEndMediumMinimumHits);
+        Assert.AreEqual(expected.RoundEndGoodMinimumHits, actual.RoundEndGoodMinimumHits);
+        Assert.AreEqual(expected.GameEndDelayMilliseconds, actual.GameEndDelayMilliseconds);
         Assert.AreEqual(expected.FreePlay, actual.FreePlay);
         Assert.AreEqual(expected.CoinsPerCredit, actual.CoinsPerCredit);
         Assert.AreEqual(expected.FixedDifficulty, actual.FixedDifficulty);

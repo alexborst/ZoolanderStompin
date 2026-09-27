@@ -11,4 +11,9 @@ public enum GameSound
     GameEnd,
     Coin,
     Ticket,
+    Attract,
+    RoundEndBad,
+    RoundEndMedium,
+    RoundEndGood,
+    RoundEndPerfect,
 }

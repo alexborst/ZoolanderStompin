@@ -35,7 +35,7 @@ public class GameSessionFixedDifficultyTests
         driver.PulseCredit();
         driver.PulseCredit();
         driver.PlayUntilResults(hitEveryPresentation: false);
-        driver.AdvanceAndTick(driver.ResultsHold);
+        driver.FinishResults();
 
         Assert.AreEqual(SessionPhase.Countdown, driver.Session.Phase);
         Assert.AreEqual(Difficulty.Hard, driver.Session.SelectedDifficulty);

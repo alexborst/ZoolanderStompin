@@ -45,7 +45,7 @@ public class DefinitionOfDoneTests
         Record(driver, phases);
         Assert.AreEqual(SessionPhase.Results, driver.Session.Phase);
 
-        driver.AdvanceAndTick(driver.ResultsHold);
+        driver.FinishResults();
         Record(driver, phases);
 
         Assert.AreEqual(SessionPhase.Attract, driver.Session.Phase);
@@ -239,7 +239,7 @@ public class DefinitionOfDoneTests
         Assert.AreEqual(SessionPhase.Playing, extra.Session.Phase);
         Assert.AreEqual(1, extra.Session.Credits);
         extra.PlayUntilResults(hitEveryPresentation: false);
-        extra.AdvanceAndTick(extra.ResultsHold);
+        extra.FinishResults();
         Assert.AreEqual(SessionPhase.Select, extra.Session.Phase);
         Assert.AreEqual(1, extra.Session.Credits);
         Assert.AreEqual(0, extra.Session.Score.Hits);

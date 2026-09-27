@@ -1,7 +1,6 @@
-using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Media;
 using System.Runtime.Versioning;
-using Microsoft.Extensions.Hosting;
 using ZoolanderStompin.Game;
 
 namespace ZoolanderStompin;
@@ -9,13 +8,15 @@ namespace ZoolanderStompin;
 [SupportedOSPlatform("windows")]
 public sealed class WindowsGameAudio : IGameAudio
 {
-    private readonly string _soundsDirectory;
-    private readonly ConcurrentQueue<byte[]> _pending = new();
-    private int _playing;
+    private readonly SoundLibrary _library;
+    private readonly object _gate = new();
+    private readonly Stopwatch _clock = Stopwatch.StartNew();
+    private SoundPlayer? _player;
+    private TimeSpan _playingUntil;
 
-    public WindowsGameAudio(IHostEnvironment environment)
+    public WindowsGameAudio(SoundLibrary library)
     {
-        _soundsDirectory = Path.Combine(environment.ContentRootPath, "Sounds");
+        _library = library;
     }
 
     public void Play(GameSound? sound)
@@ -27,10 +28,25 @@ public sealed class WindowsGameAudio : IGameAudio
 
         try
         {
-            _pending.Enqueue(LoadWav(sound.Value));
-            if (Interlocked.CompareExchange(ref _playing, 1, 0) == 0)
+            var clip = _library.Resolve(sound.Value);
+            if (clip is null)
             {
-                ThreadPool.QueueUserWorkItem(_ => Drain());
+                return;
+            }
+
+            lock (_gate)
+            {
+                // SoundPlayer has one channel: starting a sound stops the current one.
+                // Only cues that are allowed to interrupt may cut a clip that is still playing.
+                if (_player is not null && _clock.Elapsed < _playingUntil && !SoundFolders.InterruptsPlayback(sound.Value))
+                {
+                    return;
+                }
+
+                StopPlayer();
+                _player = CreatePlayer(clip);
+                _player.Play();
+                _playingUntil = _clock.Elapsed + Duration(clip);
             }
         }
         catch
@@ -38,38 +54,37 @@ public sealed class WindowsGameAudio : IGameAudio
         }
     }
 
-    private void Drain()
+    private static TimeSpan Duration(SoundClip clip)
+    {
+        var known = clip.FilePath is { } path
+            ? WavDuration.TryRead(path, out var fromFile) ? fromFile : TimeSpan.Zero
+            : WavDuration.TryRead(clip.WavBytes ?? [], out var fromBytes) ? fromBytes : TimeSpan.Zero;
+        return known;
+    }
+
+    private static SoundPlayer CreatePlayer(SoundClip clip)
+    {
+        if (clip.FilePath is { } path)
+        {
+            return new SoundPlayer(path);
+        }
+
+        var stream = new MemoryStream(clip.WavBytes ?? [], writable: false);
+        return new SoundPlayer(stream);
+    }
+
+    private void StopPlayer()
     {
         try
         {
-            while (_pending.TryDequeue(out var wav))
-            {
-                using var stream = new MemoryStream(wav, writable: false);
-                using var player = new SoundPlayer(stream);
-                player.PlaySync();
-            }
+            _player?.Stop();
+            _player?.Dispose();
         }
         catch
         {
         }
-        finally
-        {
-            Interlocked.Exchange(ref _playing, 0);
-            if (!_pending.IsEmpty && Interlocked.CompareExchange(ref _playing, 1, 0) == 0)
-            {
-                ThreadPool.QueueUserWorkItem(_ => Drain());
-            }
-        }
-    }
 
-    private byte[] LoadWav(GameSound sound)
-    {
-        var path = Path.Combine(_soundsDirectory, $"{sound}.wav");
-        if (File.Exists(path))
-        {
-            return File.ReadAllBytes(path);
-        }
-
-        return ToneBank.ToWav(sound);
+        _player = null;
+        _playingUntil = TimeSpan.Zero;
     }
 }
