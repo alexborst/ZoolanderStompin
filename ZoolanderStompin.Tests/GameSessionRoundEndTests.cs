@@ -78,7 +78,8 @@ public class GameSessionRoundEndTests
         {
             var options = GameSessionDriver.CreateShortSession();
             Assert.IsTrue(hold > TimeSpan.FromMilliseconds(options.IntermissionMilliseconds));
-            var driver = new GameSessionDriver(new ScriptedPadPicker(1, 2, 3, 4), options, new SoundLibrary(root));
+            var sounds = new SoundLibrary(root);
+            var driver = new GameSessionDriver(new ScriptedPadPicker(1, 2, 3, 4), options, sounds);
             driver.Tick();
             driver.PulseCredit();
             driver.PulseDifficulty(Difficulty.Easy);
@@ -94,6 +95,10 @@ public class GameSessionRoundEndTests
             Assert.AreEqual(SessionPhase.Intermission, driver.Session.Phase);
 
             driver.AdvanceAndTick(hold - driver.Intermission);
+            Assert.AreEqual(SessionPhase.Intermission, driver.Session.Phase);
+            CollectionAssert.Contains(driver.Session.DrainCues().ToList(), GameSound.Countdown);
+
+            driver.AdvanceAndTick(GameSessionDriver.CountdownHold(sounds));
             driver.Tick();
             Assert.AreEqual(SessionPhase.Playing, driver.Session.Phase);
             Assert.AreEqual(2, driver.Session.CurrentRound);

@@ -35,7 +35,7 @@ public class GameOptionsTests
         Assert.AreEqual(40000, options.SoundHoldFallbackMilliseconds);
         Assert.AreEqual(5, options.RoundEndMediumMinimumHits);
         Assert.AreEqual(16, options.RoundEndGoodMinimumHits);
-        Assert.AreEqual(1500, options.GameEndDelayMilliseconds);
+        Assert.AreEqual(1000, options.GameEndDelayMilliseconds);
         Assert.IsFalse(options.FreePlay);
         Assert.AreEqual(1, options.CoinsPerCredit);
         Assert.AreEqual(Difficulty.Hard, options.FixedDifficulty);

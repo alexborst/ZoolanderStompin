@@ -139,6 +139,12 @@ public sealed class GameSessionDriver
         AdvanceAndTick(ResultsHold);
     }
 
+    /// <summary>
+    /// Length of the countdown cue a library-backed session waits on (tone fallback when the folder is empty).
+    /// </summary>
+    public static TimeSpan CountdownHold(SoundLibrary sounds) =>
+        sounds.HoldDuration(GameSound.Countdown, TimeSpan.Zero);
+
     public void MissCurrent()
     {
         if (Session.Phase != SessionPhase.Playing)

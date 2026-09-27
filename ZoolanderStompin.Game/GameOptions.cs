@@ -61,7 +61,7 @@ public sealed class GameOptions
     /// <summary>
     /// Pause after the final round-end clip finishes before the game-end sound plays.
     /// </summary>
-    public int GameEndDelayMilliseconds { get; set; } = 1500;
+    public int GameEndDelayMilliseconds { get; set; } = 1000;
 
     /// <summary>
     /// Round hits at or above this count rate Medium (below is Bad).

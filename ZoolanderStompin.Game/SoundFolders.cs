@@ -14,6 +14,8 @@ public static class SoundFolders
 
     public const string Attract = "attract";
 
+    public const string Countdown = "countdown";
+
     public const string RoundEnd = "round-end";
 
     public const string RoundEndBad = RoundEnd + "/bad";
@@ -31,6 +33,7 @@ public static class SoundFolders
         GameStart,
         GameEnd,
         Attract,
+        Countdown,
         RoundEndBad,
         RoundEndMedium,
         RoundEndGood,
@@ -44,6 +47,7 @@ public static class SoundFolders
         GameSound.GameStart => GameStart,
         GameSound.GameEnd => GameEnd,
         GameSound.Attract => Attract,
+        GameSound.Countdown => Countdown,
         GameSound.RoundEndBad => RoundEndBad,
         GameSound.RoundEndMedium => RoundEndMedium,
         GameSound.RoundEndGood => RoundEndGood,
@@ -57,6 +61,7 @@ public static class SoundFolders
             or GameSound.Attract
             or GameSound.GameStart
             or GameSound.GameEnd
+            or GameSound.Countdown
             or GameSound.RoundEndBad
             or GameSound.RoundEndMedium
             or GameSound.RoundEndGood

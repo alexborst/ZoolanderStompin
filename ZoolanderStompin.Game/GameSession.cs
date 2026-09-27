@@ -17,6 +17,7 @@ public sealed class GameSession
     private int _coinsTowardCredit;
     private int _roundStartHits;
     private bool _resultsAwaitingGameEnd;
+    private bool _countdownCued;
 
     public GameSession(GameOptions options, IGameClock clock, IPadPicker picker, SoundLibrary? sounds = null)
     {
@@ -241,10 +242,40 @@ public sealed class GameSession
     private void HandleCountdown(GameIoInput input)
     {
         _ = input;
-        if (_phaseDeadline is { IsExpired: true })
+        if (_phaseDeadline is not { IsExpired: true })
         {
-            EnterPlaying();
+            return;
         }
+
+        if (CueCountdownOnce())
+        {
+            return;
+        }
+
+        EnterPlaying();
+    }
+
+    /// <summary>
+    /// After the preceding clip finishes, cues the countdown once and holds for its length.
+    /// Returns true while that hold is pending; false once play may begin.
+    /// </summary>
+    private bool CueCountdownOnce()
+    {
+        if (_countdownCued)
+        {
+            return false;
+        }
+
+        _countdownCued = true;
+        Cue(GameSound.Countdown);
+        var hold = ClipHold(GameSound.Countdown);
+        if (hold <= TimeSpan.Zero)
+        {
+            return false;
+        }
+
+        _phaseDeadline = new TimedDeadline(_clock, hold);
+        return true;
     }
 
     private void HandlePlaying(GameIoInput input)
@@ -281,11 +312,18 @@ public sealed class GameSession
 
     private void HandleIntermission()
     {
-        if (_phaseDeadline is { IsExpired: true })
+        if (_phaseDeadline is not { IsExpired: true })
         {
-            CurrentRound++;
-            EnterPlaying();
+            return;
         }
+
+        if (CueCountdownOnce())
+        {
+            return;
+        }
+
+        CurrentRound++;
+        EnterPlaying();
     }
 
     private void HandleResults()
@@ -392,6 +430,7 @@ public sealed class GameSession
         _previousPad = null;
         Result = null;
         _loop = null;
+        _countdownCued = false;
         _phaseDeadline = new TimedDeadline(_clock, GameStartHold);
         Cue(GameSound.GameStart);
     }
@@ -414,6 +453,7 @@ public sealed class GameSession
     {
         Phase = SessionPhase.Intermission;
         _loop = null;
+        _countdownCued = false;
         var hold = ClipHold(roundEnd);
         _phaseDeadline = new TimedDeadline(_clock, hold > Intermission ? hold : Intermission);
         Cue(roundEnd);
